@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from .models import Użytkownik
 
-from szkola_jazdy.models import Użytkownik
+from .models import Użytkownik
 
 
 

@@ -7,8 +7,57 @@ from django.utils.http import urlsafe_base64_encode
 from .forms import RegistrationForm, LoginForm
 from django.views.generic import TemplateView
 
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import make_password
+from .models import Użytkownik
 
+@csrf_exempt
 def register(request):
+    if request.method == "POST":
+        try:
+            # Parsowanie danych JSON z żądania
+            data = json.loads(request.body)
+            email = data.get("email")
+            nrTelefonu = data.get("nrTelefonu", None)
+            imię = data.get("imię")
+            nazwisko = data.get("nazwisko")
+            data_urodzenia = data.get("data_urodzenia", None)
+            typ_użytkownika = data.get("typ_użytkownika")
+            password = data.get("password")
+
+            # Walidacja: Sprawdzanie, czy wymagane dane są dostępne
+            if not email or not imię or not nazwisko or not typ_użytkownika or not password:
+                return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
+
+            # Sprawdzenie, czy e-mail jest już zajęty
+            if Użytkownik.objects.filter(email=email).exists():
+                return JsonResponse({"error": "Email jest już zajęty."}, status=400)
+
+            # Tworzenie użytkownika
+            user = Użytkownik.objects.create(
+                email=email,
+                nrTelefonu=nrTelefonu,
+                imię=imię,
+                nazwisko=nazwisko,
+                data_urodzenia=data_urodzenia,
+                typ_użytkownika=typ_użytkownika,
+                password=make_password(password)  # Hashowanie hasła
+            )
+
+            return JsonResponse({"message": "Użytkownik został zarejestrowany pomyślnie!"}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest POST
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
+'''def register(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
         if form.is_valid():
@@ -35,7 +84,7 @@ def register(request):
         form = RegistrationForm()
 
     return render(request, 'szkola_jazdy/register.html', {'form': form})
-
+'''
 
 def home(request):
     return render(request, 'szkola_jazdy/home.html')
@@ -45,4 +94,3 @@ class LoginView(TemplateView):
         form = LoginForm()
         return render(request, 'szkola_jazdy/login.html', {'form': form})
 
-#Testowanie
