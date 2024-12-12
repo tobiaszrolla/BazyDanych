@@ -45,3 +45,4 @@ class LoginView(TemplateView):
         form = LoginForm()
         return render(request, 'szkola_jazdy/login.html', {'form': form})
 
+#Testowanie
