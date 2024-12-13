@@ -3,42 +3,25 @@ from django.db import models
 
 
 class Sala(models.Model):
-    pojemność = models.IntegerField()
-    dostępność = models.BooleanField()
+    nazwa = models.CharField(max_length=50, null=False, blank=False)
+    capacity = models.IntegerField(default=30, verbose_name="Pojemność")
+    availability = models.BooleanField(default=True, verbose_name="Dostępność")
 
     def __str__(self):
         return f"Sala {self.id}: pojemność {self.pojemność}, dostępność {self.dostępność}"
 
 
 class Samochód(models.Model):
-    numer_rejestracyjny = models.CharField(max_length=20)
+    """Model reprezentujący samochód używany na zajęciach praktycznych."""
+    registration_number = models.CharField(max_length=20, null=False, blank=False)
     model = models.CharField(max_length=50)
-    rok_produkcji = models.CharField(max_length=4)
-    dostępność = models.BooleanField()
+    production_year = models.CharField(max_length=4, null=False, blank=False)
+    availability = models.BooleanField(default=True, verbose_name="Dostępność", null=False, blank=False)
 
     def __str__(self):
-        return f"Samochód {self.model} ({self.numer_rejestracyjny})"
+        return f"Samochód {self.model} ({self.registration_number})"
 
 
-'''class Użytkownik(models.Model):
-    TYP_UŻYTKOWNIKA = [
-        ('kursant', 'Kursant'),
-        ('instruktor', 'Instruktor'),
-    ]
-
-    email = models.EmailField(unique=True)
-    nrTelefonu = models.CharField(max_length=15, null=True, blank=True)
-    imię = models.CharField(max_length=50)
-    nazwisko = models.CharField(max_length=50)
-    data_urodzenia = models.DateField(null=True, blank=True)
-    typ_użytkownika = models.CharField(max_length=10, choices=TYP_UŻYTKOWNIKA)
-    godziny_wyjeżdżone = models.IntegerField(default=0)
-    posiadane_lekcje = models.IntegerField(default=0)
-
-    def __str__(self):
-        return f"{self.imię} {self.nazwisko} ({self.typ_użytkownika})"
-'''
-#testujemy Użytkownika jako Abstract User
 class Użytkownik(AbstractUser):
     TYP_UŻYTKOWNIKA = [
         ('kursant', 'Kursant'),

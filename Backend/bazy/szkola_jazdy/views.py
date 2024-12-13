@@ -11,7 +11,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
-from .models import Użytkownik
+from .models import Użytkownik, Samochód, Sala
 from django.contrib.auth import authenticate
 
 
@@ -88,40 +88,74 @@ def login(request):
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
 
-'''def register(request):
-    if request.method == 'POST':
-        form = RegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.is_active = False  # Ustawiamy użytkownika na nieaktywny
-            user.save()
-
-            # Generowanie tokena aktywacji
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(str(user.pk).encode())
-            mail_subject = 'Weryfikacja adresu e-mail'
-            message = render_to_string('account/activation_email.html', {
-                'user': user,
-                'domain': 'twoja-domena.com',
-                'uid': uid,
-                'token': token,
-            })
-            send_mail(mail_subject, message, 'no-reply@yourdomain.com', [user.email])
-
-            #return redirect('szkola_jazdy:login')
-            return redirect('login')
-    else:
-        form = RegistrationForm()
-
-    return render(request, 'szkola_jazdy/register.html', {'form': form})
-'''
-
 def home(request):
     return render(request, 'szkola_jazdy/home.html')
-'''
-class LoginView(TemplateView):
-    def get(self, request):
-        form = LoginForm()
-        return render(request, 'szkola_jazdy/login.html', {'form': form})
-'''
+@csrf_exempt
+def add_car(request):
+    if request.method == "POST":
+        try:
+            # Parsowanie danych JSON z żądania
+            data = json.loads(request.body)
+            registration_number = data.get("registration_number")
+            model = data.get("model")
+            production_year = data.get("production_year")
+            availability = data.get("availability")
+
+            # Walidacja: Sprawdzanie, czy wymagane dane są dostępne
+            if not registration_number or not model or not production_year or availability is None:
+                return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
+
+            # Sprawdzenie, czy samochód o tym numerze rejestracyjnym już istnieje
+            if Samochód.objects.filter(registration_number=registration_number).exists():
+                return JsonResponse({"error": "Samochód o tym numerze rejestracyjnym już istnieje."}, status=400)
+
+            # Tworzenie samochodu
+            car = Samochód.objects.create(
+                registration_number=registration_number,
+                model=model,
+                production_year=production_year,
+                availability=availability
+            )
+
+            return JsonResponse({"message": "Samochód został dodany pomyślnie!", "car_id": car.id}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest POST
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+@csrf_exempt
+def add_room(request):
+    if request.method == "POST":
+        try:
+            # Parsowanie danych JSON z żądania
+            data = json.loads(request.body)
+            capacity = data.get("capacity")
+            availability = data.get("availability")
+            nazwa = data.get("nazwa")
+
+            # Walidacja: Sprawdzanie, czy wymagane dane są dostępne
+            if not capacity or availability is None or nazwa is None:
+                return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
+
+            # Tworzenie sali
+            room = Sala.objects.create(
+                capacity=capacity,
+                availability=availability,
+                nazwa=nazwa
+            )
+
+            return JsonResponse({"message": "Sala została dodana pomyślnie!", "room_id": room.id}, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest POST
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
