@@ -45,7 +45,7 @@ class Użytkownik(AbstractUser):
         ('instruktor', 'Instruktor'),
     ]
 
-    email = models.EmailField(max_length=50,unique=True)
+    email = models.EmailField(unique=True)
     nrTelefonu = models.CharField(max_length=15, null=True, blank=True)
     imię = models.CharField(max_length=50)
     nazwisko = models.CharField(max_length=50)
@@ -54,8 +54,6 @@ class Użytkownik(AbstractUser):
     godziny_wyjeżdżone = models.IntegerField(default=0)
     posiadane_lekcje = models.IntegerField(default=0)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'imię', 'nazwisko']
     #dodanie do grup i ustawienie uprawnień encji
     groups = models.ManyToManyField('auth.Group', related_name='szkola_jazdy_użytkownicy', blank=True)
     user_permissions = models.ManyToManyField('auth.Permission', related_name='szkola_jazdy_użytkownicy', blank=True)

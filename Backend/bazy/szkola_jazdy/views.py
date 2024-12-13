@@ -12,8 +12,6 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from .models import Użytkownik
-from django.contrib.auth import authenticate
-
 
 @csrf_exempt
 def register(request):
@@ -47,38 +45,8 @@ def register(request):
                 typ_użytkownika=typ_użytkownika,
                 password=make_password(password)  # Hashowanie hasła
             )
-            user.save()
+
             return JsonResponse({"message": "Użytkownik został zarejestrowany pomyślnie!"}, status=201)
-
-        except json.JSONDecodeError:
-            return JsonResponse({"error": "Nieprawidłowe dane wejściowe"}, status=400)
-
-        except Exception as e:
-            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
-
-    # Jeśli metoda żądania nie jest POST
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
-
-def login(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            email = data.get("email")
-            password = data.get("password")
-
-            #Walidacja czy hasło email zostały przesłane
-            if not email or not password:
-                return JsonResponse({"error": "Email i hasło są wymagane."}, status=400)
-
-            # Uwierzytelnienie użytkownika
-            user = authenticate(username=email, password=password)
-
-            if user is not None:
-                # Zwrócenie odpowiedzi w przypadku poprawnej pary
-                return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
-            else:
-                # Odpowiedź w przypadku błędnych danych logowania
-                return JsonResponse({"error": "Nieprawidłowy email lub hasło."}, status=401)
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."}, status=400)
@@ -86,6 +54,7 @@ def login(request):
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
+    # Jeśli metoda żądania nie jest POST
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
 
 '''def register(request):
@@ -119,9 +88,9 @@ def login(request):
 
 def home(request):
     return render(request, 'szkola_jazdy/home.html')
-'''
+
 class LoginView(TemplateView):
     def get(self, request):
         form = LoginForm()
         return render(request, 'szkola_jazdy/login.html', {'form': form})
-'''
+
