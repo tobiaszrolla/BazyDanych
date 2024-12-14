@@ -4,6 +4,7 @@ from django.test import TestCase, Client
 import json
 from django.contrib.auth import get_user_model
 from .models import Samochód, Sala
+from .create_admin import create_admin
 
 class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
     #Metody pomocnicze
@@ -205,6 +206,15 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Użytkownik został usunięty pomyślnie!')
         # Sprawdzanie, czy użytkownik został usunięty
         self.assertFalse(get_user_model().objects.filter(email='test@domena.com').exists())
+        print(response_data['message'], '\n')
+    def test_logadmin(self):
+        admin = create_admin()
+        response = self.login_user('admin@domain.com', 'strong_password')
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Zalogowano pomyślnie.')
         print(response_data['message'], '\n')
 
 
