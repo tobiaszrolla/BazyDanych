@@ -12,10 +12,14 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from .models import Użytkownik, Samochód, Sala
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth.decorators import user_passes_test
 
+def is_admin(user):
+    return user.is_superuser
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def register(request):
     if request.method == "POST":
         try:
@@ -102,6 +106,7 @@ def logout(request):
 def home(request):
     return render(request, 'szkola_jazdy/home.html')
 @csrf_exempt
+@user_passes_test(is_admin)
 def add_car(request):
     if request.method == "POST":
         try:
@@ -140,6 +145,7 @@ def add_car(request):
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def add_room(request):
     if request.method == "POST":
         try:
@@ -173,6 +179,7 @@ def add_room(request):
 
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def delete_car(request, registration_number):
     if request.method == "DELETE":
         try:
@@ -190,6 +197,7 @@ def delete_car(request, registration_number):
 
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def delete_room(request, room_name):
     if request.method == "DELETE":
         try:
@@ -207,6 +215,7 @@ def delete_room(request, room_name):
 
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def delete_user(request, email):
     if request.method == "DELETE":
         try:
