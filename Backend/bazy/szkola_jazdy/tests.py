@@ -64,6 +64,11 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
             content_type='application/json'
         )
         return response
+    def logout_user(self):
+        client=Client()
+        response=client.post('/logout/')
+        return response
+
     def add_sala(self, capacity, availability, nazwa):
         client = Client()
         data = {
@@ -120,6 +125,16 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         # Sprawdzanie odpowiedzi
         self.assertIn('message', response_data)
         self.assertEqual(response_data['message'], 'Zalogowano pomyślnie.')
+        print(response_data['message'], '\n')
+
+    def test_logout(self):
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.login_user('test@domena.com', 'strong_password')
+        response = self.logout_user()
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Wylogowano pomyślnie.')
         print(response_data['message'], '\n')
 
     def test_uniqemail(self):

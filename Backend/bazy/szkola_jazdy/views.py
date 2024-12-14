@@ -88,6 +88,17 @@ def login(request):
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
 
+@csrf_exempt
+def logout(request):
+    if request.method=="POST":
+        try:
+            logout(request)
+            return JsonResponse({"message": "Wylogowano pomyślnie."}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": f"Wsystąpił błąd: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
 def home(request):
     return render(request, 'szkola_jazdy/home.html')
 @csrf_exempt
