@@ -127,6 +127,7 @@ def add_car(request):
 
     # Jeśli metoda żądania nie jest POST
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
 @csrf_exempt
 def add_room(request):
     if request.method == "POST":
@@ -158,4 +159,56 @@ def add_room(request):
 
     # Jeśli metoda żądania nie jest POST
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
+
+@csrf_exempt
+def delete_car(request, registration_number):
+    if request.method == "DELETE":
+        try:
+            # Pobranie samochodu o danym numerze rejestracyjnym
+            car = Samochód.objects.get(registration_number=registration_number)
+            car.delete()
+            return JsonResponse({"message": "Samochód został usunięty pomyślnie!"}, status=200)
+        except Samochód.DoesNotExist:
+            return JsonResponse({"error": "Samochód o tym numerze rejestracyjnym nie istnieje."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest DELETE
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
+
+
+@csrf_exempt
+def delete_room(request, room_name):
+    if request.method == "DELETE":
+        try:
+            # Pobranie sali o danej nazwie
+            room = Sala.objects.get(nazwa=room_name)
+            room.delete()
+            return JsonResponse({"message": "Sala została usunięta pomyślnie!"}, status=200)
+        except Sala.DoesNotExist:
+            return JsonResponse({"error": "Sala o tej nazwie nie istnieje."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest DELETE
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
+
+
+@csrf_exempt
+def delete_user(request, email):
+    if request.method == "DELETE":
+        try:
+            # Pobranie użytkownika o danym e-mailu
+            user = Użytkownik.objects.get(email=email)
+            user.delete()
+            return JsonResponse({"message": "Użytkownik został usunięty pomyślnie!"}, status=200)
+        except Użytkownik.DoesNotExist:
+            return JsonResponse({"error": "Użytkownik o tym e-mailu nie istnieje."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest DELETE
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
+
 
