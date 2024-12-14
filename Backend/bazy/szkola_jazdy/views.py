@@ -71,7 +71,7 @@ def login(request):
                 return JsonResponse({"error": "Email i hasło są wymagane."}, status=400)
 
             # Uwierzytelnienie użytkownika
-            user = authenticate(username=email, password=password)
+            user = authenticate(request, username=email, password=password)
 
             if user is not None:
                 # Zwrócenie odpowiedzi w przypadku poprawnej pary
