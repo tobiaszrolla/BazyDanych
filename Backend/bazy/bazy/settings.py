@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'szkoła-jazdy',
         'USER': 'root',
-        'PASSWORD': 'XXXX',
+        'PASSWORD': 'XXXXX',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -143,3 +143,14 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'szkola_jazdy.Użytkownik'  # Twój niestandardowy model
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_AGE = 1209600 #limit czasu s
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = True
+SESSION_SAVE_EVERY_REQUEST = False
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_ENGINE_TIMEOUT = 300
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'

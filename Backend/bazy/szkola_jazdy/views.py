@@ -11,8 +11,10 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
-from .models import Użytkownik, Samochód, Sala
-from django.contrib.auth import authenticate
+from .models import Użytkownik, Samochód, Sala, Zajęcia
+from django.contrib.auth import logout, authenticate, login as django_login #konflikt nazw z widokiem login()
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.decorators import login_required
 
 
 @csrf_exempt
@@ -74,6 +76,7 @@ def login(request):
             user = authenticate(request, username=email, password=password)
 
             if user is not None:
+                django_login(request,user)
                 # Zwrócenie odpowiedzi w przypadku poprawnej pary
                 return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
             else:
@@ -222,4 +225,65 @@ def delete_user(request, email):
     # Jeśli metoda żądania nie jest DELETE
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
 
+@login_required
+def add_zajęcia(request):
+    if request.method == "POST":
+        # Sprawdzenie, czy użytkownik jest zalogowany
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "Musisz być zalogowany, aby stworzyć zajęcia."}, status=401)
+
+        # Sprawdzenie, czy użytkownik ma odpowiedni typ (instruktor lub pracownik)
+        if request.user.typ_użytkownika.lower() not in ['instruktor', 'pracownik']:
+            return JsonResponse({"error": "Musisz być pracownikiem, aby tworzyć zajęcia."}, status=403)
+
+        # Załaduj dane z żądania
+        data = json.loads(request.body)
+
+        # Walidacja, czy nazwa sali lub numer rejestracyjny samochodu nie są puste
+        nazwa_sali = data.get("nazwa_sali")
+        numer_rejestracyjny = data.get("numer_rejestracyjny")
+
+        if not nazwa_sali and not numer_rejestracyjny:
+            return JsonResponse({"error": "Brak sali samochodu."}, status=400)
+
+        if nazwa_sali and not numer_rejestracyjny:
+            # Wyszukiwanie sali po nazwie
+            sala = Sala.objects.filter(nazwa=nazwa_sali).first()
+            if not sala:
+                return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
+            samochód = None
+        elif numer_rejestracyjny and not nazwa_sali:
+            # Wyszukiwanie samochodu po numerze rejestracyjnym
+            samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
+            if not samochód:
+                return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
+            sala = None
+        else:
+            # Jeśli oba są podane, sprawdzimy oba
+            sala = Sala.objects.filter(nazwa=nazwa_sali).first()
+            samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
+
+            if not sala:
+                return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
+            if not samochód:
+                return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
+
+        # Pobierz instruktora
+        instruktor = get_object_or_404(Użytkownik, id=data.get("instruktor_id"))
+
+        # Utwórz zajęcia
+        zajęcia = Zajęcia.objects.create(
+            sala=sala,
+            samochód=samochód,
+            instruktor=instruktor,
+            godzina_rozpoczęcia=data.get("godzina_rozpoczęcia"),
+            godzina_zakończenia=data.get("godzina_zakończenia")
+        )
+
+        # Zwróć odpowiedź
+        return JsonResponse({
+            "message": "Zajęcia zostały utworzone pomyślnie!"
+        }, status=201)
+
+    return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
 

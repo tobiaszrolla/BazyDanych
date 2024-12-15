@@ -5,26 +5,28 @@ import json
 from django.contrib.auth import get_user_model
 from .models import Samochód, Sala
 from .create_admin import create_admin
+from django.conf import settings
+from django.urls import reverse
 
 class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
+    def setUp(self):
+        self.client = Client()
+        self.client.session.clear()
     #Metody pomocnicze
     def delete_car(self, registration_number):
-        client = Client()
-        response = client.delete(f'/delete_car/{registration_number}/')
+        response = self.client.delete(f'/delete_car/{registration_number}/')
         print(f"Status code for deleting car: {response.status_code}")
         print(f"Response content: {response.content.decode()}")
         return response
 
     def delete_room(self, room_name):
-        client = Client()
-        response = client.delete(f'/delete_room/{room_name}/')
+        response = self.client.delete(f'/delete_room/{room_name}/')
         print(f"Status code for deleting room: {response.status_code}")
         print(f"Response content: {response.content.decode()}")
         return response
 
     def delete_user(self, email):
-        client = Client()
-        response = client.delete(f'/delete_user/{email}/')
+        response = self.client.delete(f'/delete_user/{email}/')
         print(f"Status code for deleting user: {response.status_code}")
         print(f"Response content: {response.content.decode()}")
         return response
@@ -35,7 +37,6 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
                       data_urodzenia,
                       typ_użytkownika,
                       ):
-        client = Client()
         data = {
             'email': email,
             'nrTelefonu': '123456789',
@@ -45,7 +46,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
             'typ_użytkownika': typ_użytkownika,
             'password': password,
         }
-        response = client.post(
+        response = self.client.post(
             '/register/',
             data=json.dumps(data),
             content_type='application/json'
@@ -53,30 +54,30 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         return response
 
     def login_user(self, email, password):
-        client = Client()
         data = {
             'email': email,
             'password': password,
         }
-        response = client.post(
+        response = self.client.post(
             '/login/',
             data=json.dumps(data),
             content_type='application/json'
         )
         return response
     def logout_user(self):
-        client=Client()
-        response=client.post('/logout/')
+        response = self.client.post('/logout_user/')
+        return response
+    def logout_user(self):
+        response=self.client.post('/logout/')
         return response
 
     def add_sala(self, capacity, availability, nazwa):
-        client = Client()
         data = {
             'capacity': capacity,
             'availability': availability,
             'nazwa': nazwa,
         }
-        response = client.post(
+        response = self.client.post(
             '/add_room/',
             data=json.dumps(data),
             content_type='application/json'
@@ -84,22 +85,35 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response.status_code)
         return response
     def add_car(self, registration_number, model, production_year, availability):
-        client = Client()
         data = {
             'registration_number': registration_number,
             'model': model,
             'production_year': production_year,
             'availability': availability
         }
-        response = client.post(
+        response = self.client.post(
             '/add_car/',
             data=json.dumps(data),
             content_type='application/json'
         )
         print(response.status_code)
         return response
+    def add_Zajęcia(self, nazwa_sali, numer_rejestracyjny, godzina_rozpoczęcia, godzina_zakończenia):
+        data = {
+            'nazwa_sali': nazwa_sali,
+            'numer_rejestracyjny': numer_rejestracyjny,
+            'godzina_rozpoczęcia': godzina_rozpoczęcia,
+            'godzina_zakończenia': godzina_zakończenia
+        }
+        response = self.client.post(
+            '/add_zajęcia/',
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+        print(response.status_code)
+        return response
+
     def test_register(self):
-        client = Client()
         response = self.register_user('test@domena.com','strong_password', '2003-03-03','kursant')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
@@ -232,4 +246,25 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Zalogowano pomyślnie.')
         print(response_data['message'], '\n')
 
+    def test_logout(self):
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.login_user('test@domena.com', 'strong_password')
+        response = self.logout_user()
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Wylogowano pomyślnie.')
+        print(response_data['message'], '\n')
+    def test_dodawanieZajęć(self):
+        session = self.client.session #tworzy sesję
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        response = self.login_user('test@domena.com', 'strong_password')
+        print(f"Response z logowania: {response.status_code}, Treść: {response.json()}")
+        self.add_sala(13,True,'c123')
+        response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
+        self.assertEqual(response.status_code, 201)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Zajęcia zostały utworzone pomyślnie!')
+        print(response_data['message'], '\n')
 
