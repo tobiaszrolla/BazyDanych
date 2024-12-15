@@ -15,7 +15,10 @@ from .models import Użytkownik, Samochód, Sala, Zajęcia
 from django.contrib.auth import logout, authenticate, login as django_login #konflikt nazw z widokiem login()
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test
 
+def is_admin(user):
+    return user.is_superuser
 
 @csrf_exempt
 def register(request):
@@ -61,6 +64,7 @@ def register(request):
     # Jeśli metoda żądania nie jest POST
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
 
+@csrf_exempt
 def login(request):
     if request.method == "POST":
         try:
@@ -73,7 +77,7 @@ def login(request):
                 return JsonResponse({"error": "Email i hasło są wymagane."}, status=400)
 
             # Uwierzytelnienie użytkownika
-            user = authenticate(request, username=email, password=password)
+            user = authenticate(request, username=email, password=password)  # Sprawdź poprawność danych
 
             if user is not None:
                 django_login(request,user)
@@ -105,6 +109,7 @@ def logout(request):
 def home(request):
     return render(request, 'szkola_jazdy/home.html')
 @csrf_exempt
+@user_passes_test(is_admin)
 def add_car(request):
     if request.method == "POST":
         try:
@@ -143,6 +148,7 @@ def add_car(request):
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def add_room(request):
     if request.method == "POST":
         try:
@@ -176,6 +182,7 @@ def add_room(request):
 
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def delete_car(request, registration_number):
     if request.method == "DELETE":
         try:
@@ -193,11 +200,12 @@ def delete_car(request, registration_number):
 
 
 @csrf_exempt
-def delete_room(request, room_name):
+@user_passes_test(is_admin)
+def delete_room(request, nazwa):
     if request.method == "DELETE":
         try:
             # Pobranie sali o danej nazwie
-            room = Sala.objects.get(nazwa=room_name)
+            room = Sala.objects.get(nazwa=nazwa)
             room.delete()
             return JsonResponse({"message": "Sala została usunięta pomyślnie!"}, status=200)
         except Sala.DoesNotExist:
@@ -210,6 +218,7 @@ def delete_room(request, room_name):
 
 
 @csrf_exempt
+@user_passes_test(is_admin)
 def delete_user(request, email):
     if request.method == "DELETE":
         try:
@@ -224,7 +233,35 @@ def delete_user(request, email):
 
     # Jeśli metoda żądania nie jest DELETE
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
+@csrf_exempt
+@user_passes_test(is_admin)
+def modify_user(request, email):
+    if request.method == "PUT":
+        try:
+            # Pobranie użytkownika do modyfikacji
+            user = Użytkownik.objects.get(email=email)
 
+            # Parsowanie danych JSON z żądania
+            data = json.loads(request.body)
+
+            # Aktualizacja danych użytkownika
+            user.imię = data.get("imię", user.imię)
+            user.nazwisko = data.get("nazwisko", user.nazwisko)
+            user.nrTelefonu = data.get("nrTelefonu", user.nrTelefonu)
+            user.data_urodzenia = data.get("data_urodzenia", user.data_urodzenia)
+            user.typ_użytkownika = data.get("typ_użytkownika", user.typ_użytkownika)
+
+            # Jeśli przesłano nowe hasło, ustaw je
+            if "password" in data:
+                user.password = make_password(data["password"])
+
+            user.save()
+            return JsonResponse({"message": "Dane użytkownika zostały zmodyfikowane pomyślnie!"}, status=200)
+
+        except Użytkownik.DoesNotExist:
+            return JsonResponse({"error": "Użytkownik o tym e-mailu nie istnieje."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 @login_required
 def add_zajęcia(request):
     if request.method == "POST":
@@ -287,3 +324,48 @@ def add_zajęcia(request):
 
     return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
 
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+@csrf_exempt
+@user_passes_test(is_admin)
+def modify_car(request, registration_number):
+    if request.method == "PUT":
+        try:
+            # Pobranie samochodu do modyfikacji
+            car = Samochód.objects.get(registration_number=registration_number)
+
+            # Parsowanie danych JSON z żądania
+            data = json.loads(request.body)
+
+            # Aktualizacja danych samochodu
+            car.model = data.get("model", car.model)
+            car.production_year = data.get("production_year", car.production_year)
+            car.availability = data.get("availability", car.availability)
+
+            car.save()
+            return JsonResponse({"message": "Dane samochodu zostały zmodyfikowane pomyślnie!"}, status=200)
+
+        except Samochód.DoesNotExist:
+            return JsonResponse({"error": "Samochód o tym numerze rejestracyjnym nie istnieje."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+
+@csrf_exempt
+@user_passes_test(is_admin)
+def modify_room(request, nazwa):
+    if request.method == "PUT":
+        try:
+            data = json.loads(request.body)
+            room = Sala.objects.get(nazwa=nazwa)
+            # Logika modyfikacji
+            room.nazwa = data.get('nazwa', room.nazwa)
+            room.save()
+            return JsonResponse({"message": "Sala została zmodyfikowana pomyślnie!"}, status=200)
+        except Sala.DoesNotExist:
+            return JsonResponse({"error": "Sala o tej nazwie nie istnieje."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest PUT
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
