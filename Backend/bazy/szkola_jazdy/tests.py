@@ -99,12 +99,18 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response.status_code)
         return response
     def add_Zajęcia(self, nazwa_sali, numer_rejestracyjny, godzina_rozpoczęcia, godzina_zakończenia):
-        data = {
-            'nazwa_sali': nazwa_sali,
-            'numer_rejestracyjny': numer_rejestracyjny,
-            'godzina_rozpoczęcia': godzina_rozpoczęcia,
-            'godzina_zakończenia': godzina_zakończenia
-        }
+        if(numer_rejestracyjny==''):
+            data = {
+                'nazwa_sali': nazwa_sali,
+                'godzina_rozpoczęcia': godzina_rozpoczęcia,
+                'godzina_zakończenia': godzina_zakończenia,
+            }
+        else:
+            data = {
+                'numer_rejestracyjny': numer_rejestracyjny,
+                'godzina_rozpoczęcia': godzina_rozpoczęcia,
+                'godzina_zakończenia': godzina_zakończenia
+            }
         response = self.client.post(
             '/add_zajęcia/',
             data=json.dumps(data),
@@ -175,6 +181,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['error'], 'Nieprawidłowy email lub hasło.')
         print(response_data['error'], "\n Wykryto nieprawidłowe hasło.\n")
     def test_newSala(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         response = self.add_sala(13,True,'c123')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
@@ -182,6 +191,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Sala została dodana pomyślnie!')
         print(response_data['message'], 'Sala została dodana pomyślnie!\n')
     def test_newSamochód(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         response = self.add_car('DH1234', 'Toyota Yaris', '1410', True)
         print(f"Status code: {response.status_code}")
         print(f"Response content: {response.content.decode()}")
@@ -193,6 +205,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
 
     def test_deleteCar(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         # Dodawanie samochodu
         self.add_car('DH1234', 'Toyota Yaris', '1410', True)
         # Sprawdzanie, czy samochód istnieje przed usunięciem
@@ -208,6 +223,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
 
     def test_deleteRoom(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         # Dodawanie sali
         self.add_sala(13, True, 'c123')
         # Sprawdzanie, czy sala istnieje przed usunięciem
@@ -224,6 +242,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
 
     def test_deleteUser(self):
         # Rejestracja użytkownika
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
         # Sprawdzanie, czy użytkownik istnieje przed usunięciem
         self.assertTrue(get_user_model().objects.filter(email='test@domena.com').exists())
@@ -257,14 +278,17 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
     def test_dodawanieZajęć(self):
         session = self.client.session #tworzy sesję
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
-        response = self.login_user('test@domena.com', 'strong_password')
-        print(f"Response z logowania: {response.status_code}, Treść: {response.json()}")
         self.add_sala(13,True,'c123')
+        self.logout_user()
+        self.login_user('test@domena.com', 'strong_password')
         response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
         self.assertIn('message', response_data)
         self.assertEqual(response_data['message'], 'Zajęcia zostały utworzone pomyślnie!')
         print(response_data['message'], '\n')
+
 

@@ -201,11 +201,11 @@ def delete_car(request, registration_number):
 
 @csrf_exempt
 @user_passes_test(is_admin)
-def delete_room(request, nazwa):
+def delete_room(request, room_name):
     if request.method == "DELETE":
         try:
             # Pobranie sali o danej nazwie
-            room = Sala.objects.get(nazwa=nazwa)
+            room = Sala.objects.get(nazwa=room_name)
             room.delete()
             return JsonResponse({"message": "Sala została usunięta pomyślnie!"}, status=200)
         except Sala.DoesNotExist:
@@ -259,6 +259,7 @@ def modify_user(request, email):
             return JsonResponse({"message": "Dane użytkownika zostały zmodyfikowane pomyślnie!"}, status=200)
 
         except Użytkownik.DoesNotExist:
+            print("brak usera\n")
             return JsonResponse({"error": "Użytkownik o tym e-mailu nie istnieje."}, status=404)
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
@@ -287,26 +288,19 @@ def add_zajęcia(request):
             # Wyszukiwanie sali po nazwie
             sala = Sala.objects.filter(nazwa=nazwa_sali).first()
             if not sala:
+                print("nie ma takiej sali\n")
                 return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
             samochód = None
         elif numer_rejestracyjny and not nazwa_sali:
             # Wyszukiwanie samochodu po numerze rejestracyjnym
             samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
             if not samochód:
+                print("nie ma takiego numeru\n")
                 return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
             sala = None
-        else:
-            # Jeśli oba są podane, sprawdzimy oba
-            sala = Sala.objects.filter(nazwa=nazwa_sali).first()
-            samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
-
-            if not sala:
-                return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
-            if not samochód:
-                return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
 
         # Pobierz instruktora
-        instruktor = get_object_or_404(Użytkownik, id=data.get("instruktor_id"))
+        instruktor = request.user
 
         # Utwórz zajęcia
         zajęcia = Zajęcia.objects.create(
