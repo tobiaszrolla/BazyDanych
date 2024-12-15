@@ -8,7 +8,7 @@ class Sala(models.Model):
     availability = models.BooleanField(default=True, verbose_name="Dostępność")
 
     def __str__(self):
-        return f"Sala {self.id}: pojemność {self.pojemność}, dostępność {self.dostępność}"
+        return f"Sala {self.nazwa}: pojemność {self.capacity}, dostępność {self.availability}"
 
 
 class Samochód(models.Model):
