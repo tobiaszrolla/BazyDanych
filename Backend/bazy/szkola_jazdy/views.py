@@ -11,7 +11,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
-from .models import Użytkownik, Samochód, Sala, Zajęcia, KursanciNaZajęciach
+from .models import Użytkownik, Samochód, Sala, Zajęcia
 from django.contrib.auth import logout, authenticate, login as django_login #konflikt nazw z widokiem login()
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -202,11 +202,11 @@ def delete_car(request, registration_number):
 
 @csrf_exempt
 @user_passes_test(is_admin)
-def delete_room(request, room_name):
+def delete_room(request, nazwa):
     if request.method == "DELETE":
         try:
             # Pobranie sali o danej nazwie
-            room = Sala.objects.get(nazwa=room_name)
+            room = Sala.objects.get(nazwa=nazwa)
             room.delete()
             return JsonResponse({"message": "Sala została usunięta pomyślnie!"}, status=200)
         except Sala.DoesNotExist:
@@ -299,6 +299,15 @@ def add_zajęcia(request):
                 print("nie ma takiego numeru\n")
                 return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
             sala = None
+        else:
+            # Jeśli oba są podane, sprawdzimy oba
+            sala = Sala.objects.filter(nazwa=nazwa_sali).first()
+            samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
+
+            if not sala:
+                return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
+            if not samochód:
+                return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
 
         # Pobierz instruktora
         instruktor = request.user

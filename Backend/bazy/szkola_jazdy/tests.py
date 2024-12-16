@@ -1,9 +1,9 @@
 from http.client import responses
-from django.contrib.auth.models import User
+
 from django.test import TestCase, Client
 import json
 from django.contrib.auth import get_user_model
-from .models import Samochód, Sala, Zajęcia, KursanciNaZajęciach
+from .models import Samochód, Sala
 from .create_admin import create_admin
 from django.conf import settings
 from django.urls import reverse
@@ -289,26 +289,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         create_admin()
         self.login_user('admin@domain.com', 'strong_password')
         self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        response = self.login_user('test@domena.com', 'strong_password')
+        print(f"Response z logowania: {response.status_code}, Treść: {response.json()}")
         self.add_sala(13,True,'c123')
-        self.logout_user()
-        self.login_user('test@domena.com', 'strong_password')
-        response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
-        self.assertEqual(response.status_code, 201)
-        response_data = response.json()
-        self.assertIn('message', response_data)
-        self.assertEqual(response_data['message'], 'Zajęcia zostały utworzone pomyślnie!')
-        print(response_data['message'], '\n')
-
-    def test_deleteZajęcia(self):
-        session = self.client.session  # Tworzenie sesji
-        create_admin()
-        self.login_user('admin@domain.com', 'strong_password')
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
-        self.add_sala(13, True, 'c123')  # Dodanie sali
-        self.logout_user()
-        self.login_user('test@domena.com', 'strong_password')
-
-        # Dodanie zajęć
         response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
