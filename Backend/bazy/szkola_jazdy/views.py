@@ -4,6 +4,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.http import require_POST
+
 from .forms import RegistrationForm, LoginForm
 from django.views.generic import TemplateView
 
@@ -16,7 +18,6 @@ from django.contrib.auth import logout, authenticate, login as django_login #kon
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
-from django.views.decorators.http import require_POST
 
 def is_admin(user):
     return user.is_superuser
@@ -202,11 +203,11 @@ def delete_car(request, registration_number):
 
 @csrf_exempt
 @user_passes_test(is_admin)
-def delete_room(request, nazwa):
+def delete_room(request, room_name):
     if request.method == "DELETE":
         try:
             # Pobranie sali o danej nazwie
-            room = Sala.objects.get(nazwa=nazwa)
+            room = Sala.objects.get(nazwa=room_name)
             room.delete()
             return JsonResponse({"message": "Sala została usunięta pomyślnie!"}, status=200)
         except Sala.DoesNotExist:
@@ -299,19 +300,9 @@ def add_zajęcia(request):
                 print("nie ma takiego numeru\n")
                 return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
             sala = None
-        else:
-            # Jeśli oba są podane, sprawdzimy oba
-            sala = Sala.objects.filter(nazwa=nazwa_sali).first()
-            samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
-
-            if not sala:
-                return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
-            if not samochód:
-                return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
 
         # Pobierz instruktora
         instruktor = request.user
-
 
         # Utwórz zajęcia
         zajęcia = Zajęcia.objects.create(
@@ -330,7 +321,6 @@ def add_zajęcia(request):
     return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
-
 
 @login_required
 @require_POST
