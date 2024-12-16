@@ -3,7 +3,7 @@ from http.client import responses
 from django.test import TestCase, Client
 import json
 from django.contrib.auth import get_user_model
-from .models import Samochód, Sala
+from .models import Samochód, Sala, Zajęcia, KursanciNaZajęciach
 from .create_admin import create_admin
 from django.conf import settings
 from django.urls import reverse

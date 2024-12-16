@@ -11,7 +11,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
-from .models import Użytkownik, Samochód, Sala, Zajęcia
+from .models import Użytkownik, Samochód, Sala, Zajęcia, KursanciNaZajęciach
 from django.contrib.auth import logout, authenticate, login as django_login #konflikt nazw z widokiem login()
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
