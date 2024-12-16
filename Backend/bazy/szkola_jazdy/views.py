@@ -11,11 +11,12 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
-from .models import Użytkownik, Samochód, Sala, Zajęcia
+from .models import Użytkownik, Samochód, Sala, Zajęcia, KursanciNaZajęciach
 from django.contrib.auth import logout, authenticate, login as django_login #konflikt nazw z widokiem login()
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
+from django.views.decorators.http import require_POST
 
 def is_admin(user):
     return user.is_superuser
@@ -201,11 +202,11 @@ def delete_car(request, registration_number):
 
 @csrf_exempt
 @user_passes_test(is_admin)
-def delete_room(request, nazwa):
+def delete_room(request, room_name):
     if request.method == "DELETE":
         try:
             # Pobranie sali o danej nazwie
-            room = Sala.objects.get(nazwa=nazwa)
+            room = Sala.objects.get(nazwa=room_name)
             room.delete()
             return JsonResponse({"message": "Sala została usunięta pomyślnie!"}, status=200)
         except Sala.DoesNotExist:
@@ -259,6 +260,7 @@ def modify_user(request, email):
             return JsonResponse({"message": "Dane użytkownika zostały zmodyfikowane pomyślnie!"}, status=200)
 
         except Użytkownik.DoesNotExist:
+            print("brak usera\n")
             return JsonResponse({"error": "Użytkownik o tym e-mailu nie istnieje."}, status=404)
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
@@ -287,26 +289,20 @@ def add_zajęcia(request):
             # Wyszukiwanie sali po nazwie
             sala = Sala.objects.filter(nazwa=nazwa_sali).first()
             if not sala:
+                print("nie ma takiej sali\n")
                 return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
             samochód = None
         elif numer_rejestracyjny and not nazwa_sali:
             # Wyszukiwanie samochodu po numerze rejestracyjnym
             samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
             if not samochód:
+                print("nie ma takiego numeru\n")
                 return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
             sala = None
-        else:
-            # Jeśli oba są podane, sprawdzimy oba
-            sala = Sala.objects.filter(nazwa=nazwa_sali).first()
-            samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
-
-            if not sala:
-                return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
-            if not samochód:
-                return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
 
         # Pobierz instruktora
-        instruktor = get_object_or_404(Użytkownik, id=data.get("instruktor_id"))
+        instruktor = request.user
+
 
         # Utwórz zajęcia
         zajęcia = Zajęcia.objects.create(
@@ -325,6 +321,47 @@ def add_zajęcia(request):
     return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+
+
+@login_required
+@require_POST
+def zapisz_na_zajęcia(request, zajęcia_id):
+    try:
+        zajęcia = Zajęcia.objects.get(id=zajęcia_id)
+    except Zajęcia.DoesNotExist:
+        return JsonResponse({"error": "Nie znaleziono zajęć."}, status=404)
+
+    # Sprawdzenie, czy kursant już jest zapisany na te zajęcia
+    if KursanciNaZajęciach.objects.filter(użytkownik=request.user, zajęcia=zajęcia).exists():
+        return JsonResponse({"error": "Już jesteś zapisany na te zajęcia."}, status=400)
+
+    # Zapisanie kursanta na zajęcia
+    KursanciNaZajęciach.objects.create(użytkownik=request.user, zajęcia=zajęcia)
+    return JsonResponse({"message": "Zostałeś zapisany na zajęcia!"}, status=201)
+
+
+@login_required
+def delete_zajęcia(request, numer_zajęć):
+    if request.method == "DELETE":
+        # Sprawdzenie, czy użytkownik ma odpowiedni typ
+        if request.user.typ_użytkownika.lower() not in ['instruktor', 'pracownik']:
+            return JsonResponse({"error": "Musisz być pracownikiem, aby usuwać zajęcia."}, status=403)
+
+        # Wyszukiwanie zajęć po `id`
+        zajęcia = Zajęcia.objects.filter(id=numer_zajęć).first()
+        if not zajęcia:
+            return JsonResponse({"error": "Nie znaleziono zajęć o podanym numerze."}, status=404)
+
+        # Sprawdzenie, czy użytkownik ma uprawnienia do usunięcia zajęć
+        if zajęcia.instruktor != request.user:
+            return JsonResponse({"error": "Nie masz uprawnień do usunięcia tych zajęć."}, status=403)
+
+        # Usunięcie zajęć
+        zajęcia.delete()
+        return JsonResponse({"success": "Zajęcia zostały pomyślnie usunięte."}, status=200)
+
+    return JsonResponse({"error": "Nieprawidłowa metoda HTTP."}, status=405)
+
 @csrf_exempt
 @user_passes_test(is_admin)
 def modify_car(request, registration_number):

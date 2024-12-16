@@ -1,9 +1,9 @@
 from http.client import responses
-
+from django.contrib.auth.models import User
 from django.test import TestCase, Client
 import json
 from django.contrib.auth import get_user_model
-from .models import Samochód, Sala
+from .models import Samochód, Sala, Zajęcia, KursanciNaZajęciach
 from .create_admin import create_admin
 from django.conf import settings
 from django.urls import reverse
@@ -12,6 +12,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
     def setUp(self):
         self.client = Client()
         self.client.session.clear()
+
     #Metody pomocnicze
     def delete_car(self, registration_number):
         response = self.client.delete(f'/delete_car/{registration_number}/')
@@ -28,6 +29,12 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
     def delete_user(self, email):
         response = self.client.delete(f'/delete_user/{email}/')
         print(f"Status code for deleting user: {response.status_code}")
+        print(f"Response content: {response.content.decode()}")
+        return response
+
+    def delete_zajęcia(self, numer_zajęć):
+        response = self.client.delete(f'/delete_zajęcia/{numer_zajęć}/')
+        print(f"Status code for deleting zajęcia: {response.status_code}")
         print(f"Response content: {response.content.decode()}")
         return response
 
@@ -99,12 +106,18 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response.status_code)
         return response
     def add_Zajęcia(self, nazwa_sali, numer_rejestracyjny, godzina_rozpoczęcia, godzina_zakończenia):
-        data = {
-            'nazwa_sali': nazwa_sali,
-            'numer_rejestracyjny': numer_rejestracyjny,
-            'godzina_rozpoczęcia': godzina_rozpoczęcia,
-            'godzina_zakończenia': godzina_zakończenia
-        }
+        if(numer_rejestracyjny==''):
+            data = {
+                'nazwa_sali': nazwa_sali,
+                'godzina_rozpoczęcia': godzina_rozpoczęcia,
+                'godzina_zakończenia': godzina_zakończenia,
+            }
+        else:
+            data = {
+                'numer_rejestracyjny': numer_rejestracyjny,
+                'godzina_rozpoczęcia': godzina_rozpoczęcia,
+                'godzina_zakończenia': godzina_zakończenia
+            }
         response = self.client.post(
             '/add_zajęcia/',
             data=json.dumps(data),
@@ -112,6 +125,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         )
         print(response.status_code)
         return response
+
 
     def test_register(self):
         response = self.register_user('test@domena.com','strong_password', '2003-03-03','kursant')
@@ -175,6 +189,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['error'], 'Nieprawidłowy email lub hasło.')
         print(response_data['error'], "\n Wykryto nieprawidłowe hasło.\n")
     def test_newSala(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         response = self.add_sala(13,True,'c123')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
@@ -182,6 +199,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Sala została dodana pomyślnie!')
         print(response_data['message'], 'Sala została dodana pomyślnie!\n')
     def test_newSamochód(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         response = self.add_car('DH1234', 'Toyota Yaris', '1410', True)
         print(f"Status code: {response.status_code}")
         print(f"Response content: {response.content.decode()}")
@@ -193,6 +213,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
 
     def test_deleteCar(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         # Dodawanie samochodu
         self.add_car('DH1234', 'Toyota Yaris', '1410', True)
         # Sprawdzanie, czy samochód istnieje przed usunięciem
@@ -208,6 +231,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
 
     def test_deleteRoom(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         # Dodawanie sali
         self.add_sala(13, True, 'c123')
         # Sprawdzanie, czy sala istnieje przed usunięciem
@@ -224,6 +250,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
 
     def test_deleteUser(self):
         # Rejestracja użytkownika
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
         # Sprawdzanie, czy użytkownik istnieje przed usunięciem
         self.assertTrue(get_user_model().objects.filter(email='test@domena.com').exists())
@@ -257,10 +286,12 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
     def test_dodawanieZajęć(self):
         session = self.client.session #tworzy sesję
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
         self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
-        response = self.login_user('test@domena.com', 'strong_password')
-        print(f"Response z logowania: {response.status_code}, Treść: {response.json()}")
         self.add_sala(13,True,'c123')
+        self.logout_user()
+        self.login_user('test@domena.com', 'strong_password')
         response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
@@ -268,3 +299,64 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Zajęcia zostały utworzone pomyślnie!')
         print(response_data['message'], '\n')
 
+    def test_deleteZajęcia(self):
+        session = self.client.session  # Tworzenie sesji
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        self.add_sala(13, True, 'c123')  # Dodanie sali
+        self.logout_user()
+        self.login_user('test@domena.com', 'strong_password')
+
+        # Dodanie zajęć
+        response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
+        self.assertEqual(response.status_code, 201)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Zajęcia zostały utworzone pomyślnie!')
+        print(response_data['message'], '\n')
+
+        # Pobieranie zajęć z bazy danych, jeśli numer zajęć nie jest w odpowiedzi
+        if 'numer_zajęć' in response_data:
+            numer_zajęć = response_data['numer_zajęć']
+        else:
+            zajęcia = Zajęcia.objects.get(
+                sala__nazwa='c123',
+                godzina_rozpoczęcia='13:14:00',
+                godzina_zakończenia='16:30:00',
+            )
+            numer_zajęć = zajęcia.id
+
+        self.assertIsNotNone(numer_zajęć,
+                             "Numer zajęć nie został zwrócony w odpowiedzi ani odnaleziony w bazie danych.")
+
+        # Usunięcie zajęć
+        response = self.delete_zajęcia(numer_zajęć)
+        self.assertEqual(response.status_code, 200)
+        response_data = response.json()
+        self.assertIn('success', response_data)  # Zmienione z 'message' na 'success'
+        self.assertEqual(response_data['success'],
+                         'Zajęcia zostały pomyślnie usunięte.')  # Zmienione z 'message' na 'success'
+        print(response_data['success'], '\n')
+
+    def test_zapis_bez_zalogowania(self):
+        self.client.logout()
+        response = self.client.post(reverse('zapisz_na_zajęcia', args=[self.zajęcia.id]))
+        self.assertEqual(response.status_code, 302)  # Przekierowanie do strony logowania
+
+    def test_zapis_na_nieistniejące_zajęcia(self):
+        response = self.client.post(reverse('zapisz_na_zajęcia', args=[999]))  # ID nieistniejących zajęć
+        self.assertEqual(response.status_code, 404)
+        self.assertJSONEqual(response.content, {"error": "Nie znaleziono zajęć."})
+
+    def test_powtórny_zapis_na_te_same_zajęcia(self):
+        KursanciNaZajęciach.objects.create(użytkownik=self.user, zajęcia=self.zajęcia)
+        response = self.client.post(reverse('zapisz_na_zajęcia', args=[self.zajęcia.id]))
+        self.assertEqual(response.status_code, 400)
+        self.assertJSONEqual(response.content, {"error": "Już jesteś zapisany na te zajęcia."})
+
+    def test_poprawny_zapis_na_zajęcia(self):
+        response = self.client.post(reverse('zapisz_na_zajęcia', args=[self.zajęcia.id]))
+        self.assertEqual(response.status_code, 201)
+        self.assertJSONEqual(response.content, {"message": "Zostałeś zapisany na zajęcia!"})
+        self.assertTrue(KursanciNaZajęciach.objects.filter(użytkownik=self.user, zajęcia=self.zajęcia).exists())
