@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_cryptography',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -83,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'szkoła-jazdy',
         'USER': 'root',
-        'PASSWORD': 'XXXXX',
+        'PASSWORD': 'XXX',
         'HOST': 'localhost',
         'PORT': '3306',
     }
