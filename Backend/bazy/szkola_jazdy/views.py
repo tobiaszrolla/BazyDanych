@@ -4,10 +4,10 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
-from django.views.decorators.http import require_POST
-
 from .forms import RegistrationForm, LoginForm
 from django.views.generic import TemplateView
+from django.views.decorators.http import require_POST
+
 
 import json
 from django.http import JsonResponse
@@ -406,3 +406,21 @@ def modify_room(request, nazwa):
 
     # Jeśli metoda żądania nie jest PUT
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+
+@login_required
+def dostępne_zajęcia(request):
+    """
+    Zwraca listę dostępnych zajęć (wolnych miejsc lub bez zapisanych kursantów).
+    """
+    zajęcia_list = Zajęcia.objects.filter(kursanci__isnull=True).select_related('sala', 'samochód', 'instruktor')
+
+    events = []
+    for zajęcia in zajęcia_list:
+        events.append({
+            "id": zajęcia.id,
+            "title": f"Instruktor: {zajęcia.instruktor} | Sala: {zajęcia.sala.nazwa if zajęcia.sala else 'Brak'}",
+            "start": zajęcia.godzina_rozpoczęcia.strftime("%H:%M"),
+            "end": zajęcia.godzina_zakończenia.strftime("%H:%M"),
+        })
+
+    return JsonResponse(events, safe=False)
