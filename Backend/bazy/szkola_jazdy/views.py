@@ -47,6 +47,7 @@ def register(request):
             # Tworzenie użytkownika
             user = Użytkownik.objects.create(
                 email=email,
+                username=email,
                 nrTelefonu=nrTelefonu,
                 imię=imię,
                 nazwisko=nazwisko,
@@ -295,7 +296,7 @@ def add_zajęcia(request):
             samochód = None
         elif numer_rejestracyjny and not nazwa_sali:
             # Wyszukiwanie samochodu po numerze rejestracyjnym
-            samochód = Samochód.objects.filter(numer_rejestracyjny=numer_rejestracyjny).first()
+            samochód = Samochód.objects.filter(registration_number=numer_rejestracyjny).first()
             if not samochód:
                 print("nie ma takiego numeru\n")
                 return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)

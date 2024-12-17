@@ -38,7 +38,7 @@ class Użytkownik(AbstractUser):
     posiadane_lekcje = models.IntegerField(default=0)
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'imię', 'nazwisko']
+    REQUIRED_FIELDS = ['imię', 'nazwisko']
     #dodanie do grup i ustawienie uprawnień encji
     groups = models.ManyToManyField('auth.Group', related_name='szkola_jazdy_użytkownicy', blank=True)
     user_permissions = models.ManyToManyField('auth.Permission', related_name='szkola_jazdy_użytkownicy', blank=True)

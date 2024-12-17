@@ -105,16 +105,16 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         )
         print(response.status_code)
         return response
-    def add_Zajęcia(self, nazwa_sali, numer_rejestracyjny, godzina_rozpoczęcia, godzina_zakończenia):
-        if(numer_rejestracyjny==''):
+    def add_Zajęcia(self, nazwa_sali, registration_number, godzina_rozpoczęcia, godzina_zakończenia):
+        if(registration_number==''):
             data = {
                 'nazwa_sali': nazwa_sali,
                 'godzina_rozpoczęcia': godzina_rozpoczęcia,
                 'godzina_zakończenia': godzina_zakończenia,
             }
-        else:
+        else :
             data = {
-                'numer_rejestracyjny': numer_rejestracyjny,
+                'numer_rejestracyjny': registration_number,
                 'godzina_rozpoczęcia': godzina_rozpoczęcia,
                 'godzina_zakończenia': godzina_zakończenia
             }
@@ -123,8 +123,23 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
             data=json.dumps(data),
             content_type='application/json'
         )
-        print(response.status_code)
+        print(f"Response status: {response.status_code}")
+        print(f"Response content: {response.content.decode()}")
         return response
+
+    def zapis_na_zajęcia(self, zajęcia_id):
+        data = {
+            'zajęcia_id': zajęcia_id
+        }
+        response = self.client.post(
+            f'/zapisz_na_zajęcia/{zajęcia_id}/',
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+        print(f"Response status: {response.status_code}")
+        print(f"Response content: {response.content.decode()}")
+        return response
+
 
 
     def test_register(self):
@@ -338,3 +353,30 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['success'],
                          'Zajęcia zostały pomyślnie usunięte.')  # Zmienione z 'message' na 'success'
         print(response_data['success'], '\n')
+
+    def test_zapis_na_zajęcia(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        self.register_user('test2@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.add_car('DH1234', 'Toyota Yaris', '1980', True)
+        self.assertTrue(Samochód.objects.filter(registration_number='DH1234').exists(),"Samochód nie został dodany do bazy danych")
+
+        self.logout_user()
+        self.login_user('test@domena.com', 'strong_password')
+        response = self.add_Zajęcia('', 'DH1234', '13:14:00', '16:30:00')
+        self.logout_user()
+        self.login_user('test2@domena.com', 'strong_password')
+        zajęcia = Zajęcia.objects.get(samochód__registration_number='DH1234', godzina_rozpoczęcia='13:14:00', godzina_zakończenia='16:30:00')
+        #print(zajęcia)
+        zajęcia_id = zajęcia.id
+        self.assertIsNotNone(zajęcia_id,"Numer zajęć nie został zwrócony w odpowiedzi ani odnaleziony w bazie danych.")
+        response = self.zapis_na_zajęcia(zajęcia_id)
+        self.assertEqual(response.status_code, 201)
+        response_data = response.json()
+        self.assertIn('message', response_data)
+        self.assertEqual(response_data['message'], 'Zostałeś zapisany na zajęcia!')
+        print(response_data['message'], '\n')
+
+
