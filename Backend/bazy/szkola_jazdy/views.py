@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
@@ -407,27 +408,37 @@ def modify_room(request, nazwa):
     # Jeśli metoda żądania nie jest PUT
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
 
-from django.db.models import Count, Q
-
+@csrf_exempt
 @login_required
 def dostępne_zajęcia(request):
     """
-    Zwraca listę zajęć, które mają wolne miejsca lub nie mają żadnych kursantów.
+    Zwraca listę dostępnych zajęć z informacją o liczbie wolnych miejsc.
     """
-    zajęcia_list = (
-        Zajęcia.objects
-        .annotate(liczba_kursantów=Count('kursanci'))
-        .filter(Q(liczba_kursantów__lt=F('maksymalna_liczba_kursantów')) | Q(liczba_kursantów=0))
-        .select_related('sala', 'samochód', 'instruktor')
-    )
+    if request.method == "GET":
+        try:
+            # Adnotacja liczby zapisanych kursantów
+            zajęcia_list = Zajęcia.objects.annotate(
+                liczba_kursantów=Count('kursanci'),
+                wolne_miejsca=('maksymalna_liczba_kursantów') - Count('kursanci')
+            ).filter(wolne_miejsca__gt=0).select_related('sala', 'samochód', 'instruktor')
 
-    events = []
-    for zajęcia in zajęcia_list:
-        events.append({
-            "id": zajęcia.id,
-            "title": f"Instruktor: {zajęcia.instruktor} | Sala: {zajęcia.sala.nazwa if zajęcia.sala else 'Brak'}",
-            "start": zajęcia.godzina_rozpoczęcia.strftime("%H:%M"),
-            "end": zajęcia.godzina_zakończenia.strftime("%H:%M"),
-        })
+            # Przygotowanie listy zajęć z dodatkowymi informacjami
+            events = []
+            for zajęcia in zajęcia_list:
+                events.append({
+                    "id": zajęcia.id,
+                    "title": f"Instruktor: {zajęcia.instruktor} | Sala: {zajęcia.sala.nazwa if zajęcia.sala else 'Brak'}",
+                    "start": zajęcia.godzina_rozpoczęcia.strftime("%H:%M"),
+                    "end": zajęcia.godzina_zakończenia.strftime("%H:%M"),
+                    "wolne_miejsca": zajęcia.wolne_miejsca,
+                })
 
-    return JsonResponse(events, safe=False)
+            return JsonResponse(events, safe=False, status=200)
+
+        except Exception as e:
+            # Obsługa błędów
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    # Jeśli metoda żądania nie jest GET
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj GET."}, status=405)
+

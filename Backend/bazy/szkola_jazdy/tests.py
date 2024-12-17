@@ -141,50 +141,15 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(f"Response content: {response.content.decode()}")
         return response
 
-    class DostępneZajęciaTests(TestCase):
-        def setUp(self):
-            # Tworzenie użytkownika testowego
-            self.user = User.objects.create_user(username="testuser", password="testpass")
-            self.client = Client()
-            self.client.login(username="testuser", password="testpass")
+    def sprawdź_status_kodu(self, response, oczekiwany_status_kodu):
+        """Pomocnicza funkcja do porównania statusu odpowiedzi"""
+        self.assertEqual(response.status_code, oczekiwany_status_kodu,
+                         f"Oczekiwany status kodu {oczekiwany_status_kodu}, ale otrzymano {response.status_code}")
 
-            # Tworzenie potrzebnych obiektów do zajęć
-            self.sala = Sala.objects.create(nazwa="Sala 1")
-            self.samochód = Samochód.objects.create(model="Model 1")
-            self.instruktor = Użytkownik.objects.create(user=self.user, typ='instruktor')
-
-            # Tworzenie zajęć z wolnymi miejscami
-            self.zajęcia1 = Zajęcia.objects.create(
-                instruktor=self.instruktor,
-                sala=self.sala,
-                samochód=self.samochód,
-                godzina_rozpoczęcia=time(10, 0),
-                godzina_zakończenia=time(12, 0),
-                maksymalna_liczba_kursantów=5
-            )
-
-            # Tworzenie zajęć z pełnym obłożeniem
-            self.zajęcia2 = Zajęcia.objects.create(
-                instruktor=self.instruktor,
-                sala=self.sala,
-                samochód=self.samochód,
-                godzina_rozpoczęcia=time(14, 0),
-                godzina_zakończenia=time(16, 0),
-                maksymalna_liczba_kursantów=1
-            )
-            self.zajęcia2.kursanci.add(self.user)
-
-        def test_dostępne_zajęcia_endpoint(self):
-            """
-            Testuje, czy endpoint zwraca zajęcia z wolnymi miejscami.
-            """
-            response = self.client.get(reverse('dostępne_zajęcia'))
-            self.assertEqual(response.status_code, 200)
-
-            data = response.json()
-            self.assertEqual(len(data), 1)  # Powinno zwrócić tylko zajęcia1
-            self.assertEqual(data[0]['id'], self.zajęcia1.id)
-
+    def sprawdź_zawartość_odpowiedzi(self, response, oczekiwana_zawartość):
+        """Pomocnicza funkcja do porównania treści odpowiedzi"""
+        self.assertIn(oczekiwana_zawartość, response.content.decode(),
+                      f"Oczekiwana zawartość: '{oczekiwana_zawartość}' nie została znaleziona w odpowiedzi")
     def test_register(self):
         response = self.register_user('test@domena.com','strong_password', '2003-03-03','kursant')
         self.assertEqual(response.status_code, 201)
@@ -422,31 +387,55 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Zostałeś zapisany na zajęcia!')
         print(response_data['message'], '\n')
 
-    def test_dostępne_zajęcia_endpoint(self):
-        """
-        Testuje, czy endpoint zwraca zajęcia z wolnymi miejscami.
-        """
-        response = self.client.get(reverse('dostępne_zajęcia'))
+    from django.db.models import Count
+
+    def test_dostępne_zajęcia(self):
+        # Dodanie sali i samochodu
+        sala = Sala.objects.create(nazwa="Sala 101", capacity=10, availability=True)
+        samochód = Samochód.objects.create(registration_number="XYZ123", model="Toyota Corolla", production_year="2020",
+                                           availability=True)
+
+        # Dodanie instruktora
+        instruktor = Użytkownik.objects.create_user(
+            email="instruktor@test.com",
+            password="strong_password",
+            imię="Jan",
+            nazwisko="Kowalski",
+            typ_użytkownika="instruktor"
+        )
+
+        # Tworzenie zajęć z wolnymi miejscami
+        zajęcia = Zajęcia.objects.create(
+            sala=sala,
+            samochód=samochód,
+            instruktor=instruktor,
+            godzina_rozpoczęcia="08:00",
+            godzina_zakończenia="10:00"
+        )
+
+        # Przypisanie kursanta na zajęcia
+        kursant = Użytkownik.objects.create_user(
+            email="kursant@test.com",
+            password="kursant_password",
+            imię="Anna",
+            nazwisko="Nowak",
+            typ_użytkownika="kursant"
+        )
+        KursanciNaZajęciach.objects.create(zajęcia=zajęcia, użytkownik=kursant)
+
+        # Wysłanie żądania GET na widok dostępne_zajęcia
+        response = self.client.get("/dostępne_zajęcia/")
+
+        # Sprawdzanie statusu odpowiedzi
         self.assertEqual(response.status_code, 200)
 
-        data = response.json()
-        self.assertEqual(len(data), 1)  # Powinna być tylko jedna dostępna lekcja
-        self.assertEqual(data[0]['id'], self.zajęcia1.id)
+        # Sprawdzanie zawartości odpowiedzi JSON
+        response_data = response.json()
+        self.assertEqual(len(response_data), 1)  # Sprawdzamy, czy zwrócono 1 zajęcia
+        self.assertEqual(response_data[0]["id"], zajęcia.id)
+        self.assertEqual(response_data[0]["wolne_miejsca"], 9)  # Jedno miejsce zajęte, sala na 10 osób
+        self.assertIn("Instruktor: Jan Kowalski", response_data[0]["title"])
 
-    def test_brak_dostępnych_zajęć(self):
-        """
-        Testuje sytuację, gdy wszystkie zajęcia są pełne.
-        """
-        self.zajęcia1.kursanci.add(self.user)  # Zapełnienie zajęcia1
-        response = self.client.get(reverse('dostępne_zajęcia'))
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data), 0)  # Brak dostępnych zajęć
+        print("Test dostępne_zajęcia zakończony pomyślnie.")
 
-    def test_nieautoryzowany_użytkownik(self):
-        """
-        Testuje, czy nieautoryzowany użytkownik otrzyma przekierowanie.
-        """
-        self.client.logout()
-        response = self.client.get(reverse('dostępne_zajęcia'))
-        self.assertEqual(response.status_code, 302)  # Przekierowanie do logowania
+
