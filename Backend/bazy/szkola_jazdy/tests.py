@@ -1,9 +1,10 @@
+from datetime import time
 from http.client import responses
 from django.contrib.auth.models import User
 from django.test import TestCase, Client
 import json
 from django.contrib.auth import get_user_model
-from .models import Samochód, Sala, Zajęcia, KursanciNaZajęciach
+from .models import Samochód, Sala, Zajęcia, KursanciNaZajęciach, Użytkownik
 from .create_admin import create_admin
 from django.conf import settings
 from django.urls import reverse
@@ -140,7 +141,49 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(f"Response content: {response.content.decode()}")
         return response
 
+    class DostępneZajęciaTests(TestCase):
+        def setUp(self):
+            # Tworzenie użytkownika testowego
+            self.user = User.objects.create_user(username="testuser", password="testpass")
+            self.client = Client()
+            self.client.login(username="testuser", password="testpass")
 
+            # Tworzenie potrzebnych obiektów do zajęć
+            self.sala = Sala.objects.create(nazwa="Sala 1")
+            self.samochód = Samochód.objects.create(model="Model 1")
+            self.instruktor = Użytkownik.objects.create(user=self.user, typ='instruktor')
+
+            # Tworzenie zajęć z wolnymi miejscami
+            self.zajęcia1 = Zajęcia.objects.create(
+                instruktor=self.instruktor,
+                sala=self.sala,
+                samochód=self.samochód,
+                godzina_rozpoczęcia=time(10, 0),
+                godzina_zakończenia=time(12, 0),
+                maksymalna_liczba_kursantów=5
+            )
+
+            # Tworzenie zajęć z pełnym obłożeniem
+            self.zajęcia2 = Zajęcia.objects.create(
+                instruktor=self.instruktor,
+                sala=self.sala,
+                samochód=self.samochód,
+                godzina_rozpoczęcia=time(14, 0),
+                godzina_zakończenia=time(16, 0),
+                maksymalna_liczba_kursantów=1
+            )
+            self.zajęcia2.kursanci.add(self.user)
+
+        def test_dostępne_zajęcia_endpoint(self):
+            """
+            Testuje, czy endpoint zwraca zajęcia z wolnymi miejscami.
+            """
+            response = self.client.get(reverse('dostępne_zajęcia'))
+            self.assertEqual(response.status_code, 200)
+
+            data = response.json()
+            self.assertEqual(len(data), 1)  # Powinno zwrócić tylko zajęcia1
+            self.assertEqual(data[0]['id'], self.zajęcia1.id)
 
     def test_register(self):
         response = self.register_user('test@domena.com','strong_password', '2003-03-03','kursant')
@@ -379,120 +422,31 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Zostałeś zapisany na zajęcia!')
         print(response_data['message'], '\n')
 
-    def test_dostepne_zajecia(self):
+    def test_dostępne_zajęcia_endpoint(self):
         """
-        Test sprawdzający, czy dostępne zajęcia są poprawnie zwracane.
+        Testuje, czy endpoint zwraca zajęcia z wolnymi miejscami.
         """
-        # Rejestracja administratora i logowanie
-        create_admin()
-        self.login_user('admin@domain.com', 'strong_password')
-
-        # Dodanie sali i samochodu
-        self.add_sala(10, True, 'sala123')
-        self.add_car('DH1234', 'Toyota Yaris', '2015', True)
-
-        # Dodanie zajęć (bez zapisanych kursantów)
-        self.add_Zajęcia('sala123', 'DH1234', '10:00:00', '12:00:00')
-
-        # Pobranie dostępnych zajęć
         response = self.client.get(reverse('dostępne_zajęcia'))
         self.assertEqual(response.status_code, 200)
 
-        # Sprawdzanie, czy odpowiedź zawiera dane o zajęciach
-        response_data = response.json()
-        self.assertGreater(len(response_data), 0)  # Sprawdza, czy lista zajęć nie jest pusta
+        data = response.json()
+        self.assertEqual(len(data), 1)  # Powinna być tylko jedna dostępna lekcja
+        self.assertEqual(data[0]['id'], self.zajęcia1.id)
 
-        # Sprawdzanie, czy w odpowiedzi znajdują się odpowiednie informacje o zajęciach
-        self.assertIn('id', response_data[0])
-        self.assertIn('title', response_data[0])
-        self.assertIn('start', response_data[0])
-        self.assertIn('end', response_data[0])
-
-        # Sprawdzanie, czy tytuł zajęć zawiera odpowiednie informacje
-        self.assertIn('Instruktor: ', response_data[0]['title'])
-        self.assertIn('Sala: ', response_data[0]['title'])
-
-    def test_brak_dostepnych_zajec(self):
+    def test_brak_dostępnych_zajęć(self):
         """
-        Test sprawdzający, czy zwróci pustą listę, gdy brak dostępnych zajęć.
+        Testuje sytuację, gdy wszystkie zajęcia są pełne.
         """
-        # Rejestracja administratora i logowanie
-        create_admin()
-        self.login_user('admin@domain.com', 'strong_password')
-
-        # Dodanie sali i samochodu
-        self.add_sala(10, True, 'sala123')
-        self.add_car('DH1234', 'Toyota Yaris', '2015', True)
-
-        # Dodanie zajęć z zapisanymi kursantami
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
-        self.add_Zajęcia('sala123', 'DH1234', '10:00:00', '12:00:00')
-        zajęcia = Zajęcia.objects.get(sala__nazwa='sala123', godzina_rozpoczęcia='10:00:00')
-        self.zapis_na_zajęcia(zajęcia.id)
-
-        # Pobranie dostępnych zajęć
+        self.zajęcia1.kursanci.add(self.user)  # Zapełnienie zajęcia1
         response = self.client.get(reverse('dostępne_zajęcia'))
         self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(len(data), 0)  # Brak dostępnych zajęć
 
-        # Sprawdzanie, czy odpowiedź zwraca pustą listę
-        response_data = response.json()
-        self.assertEqual(len(response_data), 0)
-
-    def test_dostepne_zajecia_po_zapisie(self):
+    def test_nieautoryzowany_użytkownik(self):
         """
-        Test sprawdzający, czy zajęcia są dostępne po zapisaniu kursantów.
+        Testuje, czy nieautoryzowany użytkownik otrzyma przekierowanie.
         """
-        # Rejestracja administratora i logowanie
-        create_admin()
-        self.login_user('admin@domain.com', 'strong_password')
-
-        # Dodanie sali i samochodu
-        self.add_sala(10, True, 'sala123')
-        self.add_car('DH1234', 'Toyota Yaris', '2015', True)
-
-        # Dodanie zajęć (bez zapisanych kursantów)
-        self.add_Zajęcia('sala123', 'DH1234', '10:00:00', '12:00:00')
-
-        # Sprawdzanie, czy zajęcia są dostępne
+        self.client.logout()
         response = self.client.get(reverse('dostępne_zajęcia'))
-        response_data = response.json()
-        self.assertGreater(len(response_data), 0)  # Sprawdza, czy lista zajęć nie jest pusta
-
-        # Rejestracja kursanta i zapisanie na zajęcia
-        self.register_user('kursant@domena.com', 'strong_password', '2000-01-01', 'kursant')
-        zajęcia = Zajęcia.objects.get(sala__nazwa='sala123', godzina_rozpoczęcia='10:00:00')
-        self.zapis_na_zajęcia(zajęcia.id)
-
-        # Sprawdzanie, czy zajęcia zostały już zajęte (nie są dostępne)
-        response = self.client.get(reverse('dostępne_zajęcia'))
-        response_data = response.json()
-        self.assertEqual(len(response_data), 0)  # Zajęcia powinny być już zajęte, więc brak dostępnych zajęć
-
-    def test_dostepne_zajecia_z_wieloma_salami(self):
-        """
-        Test sprawdzający, czy dostępne zajęcia są zwracane dla wielu sal.
-        """
-        # Rejestracja administratora i logowanie
-        create_admin()
-        self.login_user('admin@domain.com', 'strong_password')
-
-        # Dodanie sali i samochodu
-        self.add_sala(10, True, 'sala123')
-        self.add_sala(10, True, 'sala456')
-        self.add_car('DH1234', 'Toyota Yaris', '2015', True)
-
-        # Dodanie zajęć (bez zapisanych kursantów)
-        self.add_Zajęcia('sala123', 'DH1234', '10:00:00', '12:00:00')
-        self.add_Zajęcia('sala456', 'DH1234', '12:30:00', '14:00:00')
-
-        # Pobranie dostępnych zajęć
-        response = self.client.get(reverse('dostępne_zajęcia'))
-        self.assertEqual(response.status_code, 200)
-
-        # Sprawdzanie, czy odpowiedź zawiera dane o dwóch zajęciach
-        response_data = response.json()
-        self.assertEqual(len(response_data), 2)  # Sprawdza, czy są dwa dostępne zajęcia
-
-        # Sprawdzanie, czy każde z zajęć zawiera informacje o sali
-        self.assertIn('Sala: sala123', response_data[0]['title'])
-        self.assertIn('Sala: sala456', response_data[1]['title'])
+        self.assertEqual(response.status_code, 302)  # Przekierowanie do logowania

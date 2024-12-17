@@ -407,12 +407,19 @@ def modify_room(request, nazwa):
     # Jeśli metoda żądania nie jest PUT
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
 
+from django.db.models import Count, Q
+
 @login_required
 def dostępne_zajęcia(request):
     """
-    Zwraca listę dostępnych zajęć (wolnych miejsc lub bez zapisanych kursantów).
+    Zwraca listę zajęć, które mają wolne miejsca lub nie mają żadnych kursantów.
     """
-    zajęcia_list = Zajęcia.objects.filter(kursanci__isnull=True).select_related('sala', 'samochód', 'instruktor')
+    zajęcia_list = (
+        Zajęcia.objects
+        .annotate(liczba_kursantów=Count('kursanci'))
+        .filter(Q(liczba_kursantów__lt=F('maksymalna_liczba_kursantów')) | Q(liczba_kursantów=0))
+        .select_related('sala', 'samochód', 'instruktor')
+    )
 
     events = []
     for zajęcia in zajęcia_list:
