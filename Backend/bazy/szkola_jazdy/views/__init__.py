@@ -1,4 +1,4 @@
-from .uzytkownik_views import register,login,logout, reset_password_request
+from .uzytkownik_views import register,login,logout, reset_password_request, zapisz_na_kurs
 from .samochod_views import add_car, delete_car, modify_car
 from .other_view import home
 from .sala_views import add_room,delete_room,modify_room
