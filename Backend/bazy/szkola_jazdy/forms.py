@@ -30,3 +30,9 @@ class LoginForm(forms.Form):
     class Meta:
         model = Użytkownik
         fields = ['email', 'username']
+class OpiniaForm(forms.Form):
+    opinia = forms.CharField(
+        label="Twoja opinia",
+        widget=forms.Textarea(attrs={"placeholder": "Wprowadź swoją opinię..."}),
+        max_length=250
+    )

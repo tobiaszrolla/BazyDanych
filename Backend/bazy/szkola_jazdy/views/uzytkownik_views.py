@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.db.models import Count
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -6,7 +7,7 @@ from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from ..forms import RegistrationForm, LoginForm
+from ..forms import RegistrationForm, LoginForm, OpiniaForm
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_POST
 from django.conf import settings
@@ -207,3 +208,15 @@ def reset_password_request(request):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
+@login_required
+def dodaj_opinie(request):
+    if request.method == 'POST':
+        opinia = request.POST.get('opinia', '').strip()
+        if opinia:
+            # Tutaj zapisz opinię użytkownika, np.:
+            # Opinie.objects.create(uzytkownik=request.user, opinia=opinia)
+            return JsonResponse({'status': 'success', 'message': 'Opinia została zapisana.'})
+        else:
+            return JsonResponse({'status': 'error', 'errors': {'opinia': ['To pole jest wymagane.']}}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Nieprawidłowa metoda żądania.'}, status=405)

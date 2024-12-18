@@ -42,6 +42,7 @@ class Użytkownik(AbstractUser):
     kategoria = models.CharField(max_length=3, choices=KATEGORIA)
     godziny_wyjeżdżone = models.IntegerField(default=0)
     posiadane_lekcje = models.IntegerField(default=0)
+    Opinie = models.CharField(max_length=250)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['imię', 'nazwisko']
