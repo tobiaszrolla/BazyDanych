@@ -28,13 +28,18 @@ class Użytkownik(AbstractUser):
         ('kursant', 'Kursant'),
         ('instruktor', 'Instruktor'),
     ]
-
+    KATEGORIA = [
+        ("B", "Kategoria B"),
+        ("B1", "Kategoria B1"),
+        ("C", "Kategoria C"),
+    ]
     email = models.EmailField(max_length=50,unique=True)
     nrTelefonu = encrypt(models.CharField(max_length=15, null=True, blank=True))
     imię = encrypt(models.CharField(max_length=50))
     nazwisko = encrypt(models.CharField(max_length=50))
     data_urodzenia = encrypt(models.DateField(null=True, blank=True))
     typ_użytkownika = models.CharField(max_length=10, choices=TYP_UŻYTKOWNIKA)
+    kategoria = models.CharField(max_length=3, choices=KATEGORIA)
     godziny_wyjeżdżone = models.IntegerField(default=0)
     posiadane_lekcje = models.IntegerField(default=0)
 
@@ -47,11 +52,17 @@ class Użytkownik(AbstractUser):
     def __str__(self):
         return f"{self.imię} {self.nazwisko} ({self.typ_użytkownika})"
 class Zajęcia(models.Model):
+    KATEGORIA = [
+        ("B", "Kategoria B"),
+        ("B1", "Kategoria B1"),
+        ("C", "Kategoria C"),
+    ]
     sala = models.ForeignKey(Sala, on_delete=models.SET_NULL, null=True, blank=True)
     samochód = models.ForeignKey(Samochód, on_delete=models.SET_NULL, null=True, blank=True)
     kursanci = models.ManyToManyField('Użytkownik', through='KursanciNaZajęciach') #odwołanie do tablicy pośredniej
     instruktor = models.ForeignKey(Użytkownik, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='instruktor')
+    kategoria = models.CharField(max_length=3, choices=KATEGORIA)
     godzina_rozpoczęcia = models.TimeField()
     godzina_zakończenia = models.TimeField()
     data = models.DateField(null=True, blank=True)
