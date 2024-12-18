@@ -85,7 +85,8 @@ def modify_room(request, nazwa):
             data = json.loads(request.body)
             room = Sala.objects.get(nazwa=nazwa)
             # Logika modyfikacji
-            room.nazwa = data.get('nazwa', room.nazwa)
+            room.availability = data.get('availability', room.availability)
+            room.capacity = data.get('capacity', room.capacity)
             room.save()
             return JsonResponse({"message": "Sala została zmodyfikowana pomyślnie!"}, status=200)
         except Sala.DoesNotExist:
