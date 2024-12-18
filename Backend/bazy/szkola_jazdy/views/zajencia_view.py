@@ -20,6 +20,9 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 def is_admin(user):
     return user.is_superuser
@@ -214,3 +217,39 @@ def email_na_zajęcia(request, zajęcia_id):
                             status=201)
     except Exception as e:
         return JsonResponse({"error": f"Nie udało się wysłać e-maila: {str(e)}"}, status=500)
+
+@login_required
+@require_POST
+def kalendarz(request):
+    try:
+        user = request.user
+        if user.is_superuser:
+            return JsonResponse({"error": f"Administrator nie zapisuje się na zajęcia"}, status=403)
+        elif user.typ_użytkownika.lower() in ['instruktor', 'pracownik']:
+            zajęcia = Zajęcia.objects.filter(instruktor=user)
+
+        elif request.user.typ_użytkownika.lower() == 'kursant':
+            zajęcia = KursanciNaZajęciach.objects.filter(użytkownik=user).select_related('zajęcia')
+            logger.info(f"Zajęcia kursanta: {zajęcia}")
+        zajęcia_list = []
+        for zajęcie in zajęcia:
+            #to jest potrzebne dla tablicy pośredniej
+            if isinstance(zajęcie, KursanciNaZajęciach):
+                zajęcie = zajęcie.zajęcia
+
+            zajęcia_list.append({
+                "id": zajęcie.id,
+                "sala": zajęcie.sala.nazwa if zajęcie.sala else None,
+                "samochód": zajęcie.samochód.registration_number if zajęcie.samochód else None,
+                "godzina_rozpoczęcia": zajęcie.godzina_rozpoczęcia.strftime("%H:%M"),
+                "godzina_zakończenia": zajęcie.godzina_zakończenia.strftime("%H:%M"),
+                "data": zajęcie.data.strftime("%Y-%m-%d"),
+                "instruktor": f"{zajęcie.instruktor.imię} {zajęcie.instruktor.nazwisko}" if zajęcie.instruktor else None
+            })
+
+        return JsonResponse({"zajęcia": zajęcia_list}, status=200)
+    except Exception as e:
+        logger.error(f"Error in kalendarz view: {str(e)}")
+        return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+
