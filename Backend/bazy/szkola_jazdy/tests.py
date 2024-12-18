@@ -11,6 +11,11 @@ from .models import Samochód, Sala, Zajęcia, KursanciNaZajęciach, Użytkownik
 from .create_admin import create_admin
 from django.conf import settings
 from django.urls import reverse
+from django.db import connection
+
+
+from .views import register
+
 
 class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
     def setUp(self):
@@ -109,18 +114,20 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         )
         print(response.status_code)
         return response
-    def add_Zajęcia(self, nazwa_sali, registration_number, godzina_rozpoczęcia, godzina_zakończenia):
+    def add_Zajęcia(self, nazwa_sali, registration_number, godzina_rozpoczęcia, godzina_zakończenia,data):
         if(registration_number==''):
             data = {
                 'nazwa_sali': nazwa_sali,
                 'godzina_rozpoczęcia': godzina_rozpoczęcia,
                 'godzina_zakończenia': godzina_zakończenia,
+                'data' : data
             }
         else :
             data = {
                 'numer_rejestracyjny': registration_number,
                 'godzina_rozpoczęcia': godzina_rozpoczęcia,
-                'godzina_zakończenia': godzina_zakończenia
+                'godzina_zakończenia': godzina_zakończenia,
+                'data': data
             }
         response = self.client.post(
             '/add_zajęcia/',
@@ -318,13 +325,28 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.add_sala(13,True,'c123')
         self.logout_user()
         self.login_user('test@domena.com', 'strong_password')
-        response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
+        response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00','2024-03-03')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
         self.assertIn('message', response_data)
         self.assertEqual(response_data['message'], 'Zajęcia zostały utworzone pomyślnie!')
         print(response_data['message'], '\n')
 
+    def test_dodawanieZajęć_zajęta_sala(self):
+        session = self.client.session
+        create_admin()
+        self.login_user('admin@domain.com', 'strong_password')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        self.add_sala(13, True, 'c123')
+        self.logout_user()
+        self.login_user('test@domena.com', 'strong_password')
+        self.add_Zajęcia('c123', '', '13:14:00', '16:30:00','2024-03-03')
+        response = self.add_Zajęcia('c123', '', '14:14:00', '16:50:00','2024-03-03')
+        self.assertEqual(response.status_code, 400)
+        response_data = response.json()
+        self.assertIn('error', response_data)
+        self.assertEqual(response_data['error'], 'Sala jest już zajęta')
+        print(response_data['error'], '\n')
     def test_deleteZajęcia(self):
         session = self.client.session  # Tworzenie sesji
         create_admin()
@@ -335,7 +357,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.login_user('test@domena.com', 'strong_password')
 
         # Dodanie zajęć
-        response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00')
+        response = self.add_Zajęcia('c123', '', '13:14:00', '16:30:00','2024-03-03')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
         self.assertIn('message', response_data)
@@ -376,7 +398,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
 
         self.logout_user()
         self.login_user('test@domena.com', 'strong_password')
-        response = self.add_Zajęcia('', 'DH1234', '13:14:00', '16:30:00')
+        response = self.add_Zajęcia('', 'DH1234', '13:14:00', '16:30:00','2024-03-03')
         self.logout_user()
         self.login_user('test2@domena.com', 'strong_password')
         zajęcia = Zajęcia.objects.get(samochód__registration_number='DH1234', godzina_rozpoczęcia='13:14:00', godzina_zakończenia='16:30:00')
@@ -390,6 +412,9 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Zostałeś zapisany na zajęcia!')
         print(response_data['message'], '\n')
 
+    def test_cryptography(self):
+        session = self.client.session
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
     # Testy resetowania hasła
     def test_reset_password_success(self):
         """Test poprawnego żądania resetu hasła."""
@@ -474,22 +499,23 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
             godzina_zakończenia="10:00"
         )
 
-        # Przypisanie kursanta na zajęcia
-        kursant = Użytkownik.objects.create_user(
-            email="kursant@test.com",
-            password="kursant_password",
-            imię="Anna",
-            nazwisko="Nowak",
-            typ_użytkownika="kursant"
-        )
-        KursanciNaZajęciach.objects.create(zajęcia=zajęcia, użytkownik=kursant)
+        user = Użytkownik.objects.get(email="test@domena.com")
 
-        # Wysłanie żądania GET na widok dostępne_zajęcia
-        response = self.client.get("/dostępne_zajęcia/")
+        #kontrola poprawności rejestracji
+        self.assertEqual(user.nrTelefonu, "123456789")
+        self.assertEqual(user.imię, "User")
+        self.assertEqual(user.nazwisko, "User")
 
-        # Sprawdzanie statusu odpowiedzi
-        self.assertEqual(response.status_code, 200)
+        #surowe dane z bazy
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT nrTelefonu, imię, nazwisko FROM szkola_jazdy_użytkownik WHERE email = %s",
+                           ["test@domena.com"])
+            raw_data = cursor.fetchone()
 
+        print("Zaszyfrowane dane z bazy:", raw_data)
+        self.assertNotEqual(raw_data[0], "123456789")
+        self.assertNotEqual(raw_data[1], "Jan")
+        self.assertNotEqual(raw_data[2], "Kowalski")
         # Sprawdzanie zawartości odpowiedzi JSON
         response_data = response.json()
         self.assertEqual(len(response_data), 1)  # Sprawdzamy, czy zwrócono 1 zajęcia

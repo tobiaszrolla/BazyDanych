@@ -19,6 +19,7 @@ from django.contrib.auth import logout, authenticate, login as django_login #kon
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
+from datetime import datetime
 
 def is_admin(user):
     return user.is_superuser
@@ -267,6 +268,10 @@ def modify_user(request, email):
             return JsonResponse({"error": "Użytkownik o tym e-mailu nie istnieje."}, status=404)
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+def str_to_time(time_str):
+    return datetime.strptime(time_str, "%H:%M:%S").time()
+
 @login_required
 def add_zajęcia(request):
     if request.method == "POST":
@@ -284,23 +289,38 @@ def add_zajęcia(request):
         # Walidacja, czy nazwa sali lub numer rejestracyjny samochodu nie są puste
         nazwa_sali = data.get("nazwa_sali")
         numer_rejestracyjny = data.get("numer_rejestracyjny")
+        godzina_rozpoczęcia = data.get("godzina_rozpoczęcia")
+        godzina_zakończenia = data.get("godzina_zakończenia")
+        data = data.get("data")
 
         if not nazwa_sali and not numer_rejestracyjny:
             return JsonResponse({"error": "Brak sali samochodu."}, status=400)
 
         if nazwa_sali and not numer_rejestracyjny:
-            # Wyszukiwanie sali po nazwie
-            sala = Sala.objects.filter(nazwa=nazwa_sali).first()
-            if not sala:
+            sala = Sala.objects.filter(nazwa=nazwa_sali).first() #sala wyszukanie
+            if not sala: #czy sala istnieje
                 print("nie ma takiej sali\n")
                 return JsonResponse({"error": "Nie znaleziono sali o podanej nazwie."}, status=404)
+            if not sala.availability:
+                return JsonResponse({"error": "Sala niedostępna"}, status=400)
+            inne_zajęcia = Zajęcia.objects.filter(sala=sala, data=data)
+            for zajęcia in inne_zajęcia:    #sprawdzenie czy zajęcia nie nachodzą na siebie
+                if not (str_to_time(godzina_rozpoczęcia) >= zajęcia.godzina_zakończenia or
+                str_to_time(godzina_zakończenia) <= zajęcia.godzina_rozpoczęcia):
+                    return JsonResponse({"error": "Sala jest już zajęta"}, status=400)
             samochód = None
         elif numer_rejestracyjny and not nazwa_sali:
-            # Wyszukiwanie samochodu po numerze rejestracyjnym
             samochód = Samochód.objects.filter(registration_number=numer_rejestracyjny).first()
             if not samochód:
                 print("nie ma takiego numeru\n")
                 return JsonResponse({"error": "Nie znaleziono samochodu o podanym numerze rejestracyjnym."}, status=404)
+            if not samochód.availability:
+                return JsonResponse({"error": "Samochód niedostępny"}, status=400)
+            inne_zajęcia = Zajęcia.objects.filter(samochód=samochód, data=data)
+            for zajęcia in inne_zajęcia:
+                if not (str_to_time(godzina_rozpoczęcia) >= zajęcia.godzina_zakończenia or
+                str_to_time(godzina_zakończenia) <= zajęcia.godzina_rozpoczęcia):
+                        return JsonResponse({"error": "Samochód jest już zajęty"}, status=400)
             sala = None
 
         # Pobierz instruktora
@@ -311,8 +331,9 @@ def add_zajęcia(request):
             sala=sala,
             samochód=samochód,
             instruktor=instruktor,
-            godzina_rozpoczęcia=data.get("godzina_rozpoczęcia"),
-            godzina_zakończenia=data.get("godzina_zakończenia")
+            godzina_rozpoczęcia=godzina_rozpoczęcia,
+            godzina_zakończenia=godzina_zakończenia,
+            data = data
         )
 
         # Zwróć odpowiedź

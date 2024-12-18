@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django_cryptography.fields import encrypt
 
 
 class Sala(models.Model):
@@ -29,10 +30,10 @@ class Użytkownik(AbstractUser):
     ]
 
     email = models.EmailField(max_length=50,unique=True)
-    nrTelefonu = models.CharField(max_length=15, null=True, blank=True)
-    imię = models.CharField(max_length=50)
-    nazwisko = models.CharField(max_length=50)
-    data_urodzenia = models.DateField(null=True, blank=True)
+    nrTelefonu = encrypt(models.CharField(max_length=15, null=True, blank=True))
+    imię = encrypt(models.CharField(max_length=50))
+    nazwisko = encrypt(models.CharField(max_length=50))
+    data_urodzenia = encrypt(models.DateField(null=True, blank=True))
     typ_użytkownika = models.CharField(max_length=10, choices=TYP_UŻYTKOWNIKA)
     godziny_wyjeżdżone = models.IntegerField(default=0)
     posiadane_lekcje = models.IntegerField(default=0)
@@ -53,6 +54,7 @@ class Zajęcia(models.Model):
                                    related_name='instruktor')
     godzina_rozpoczęcia = models.TimeField()
     godzina_zakończenia = models.TimeField()
+    data = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"Zajęcia {self.id} - {self.godzina_rozpoczęcia} - {self.godzina_zakończenia}"
