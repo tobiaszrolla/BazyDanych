@@ -22,5 +22,6 @@ urlpatterns = [
     path('dodaj_opinie/', uzytkownik_views.dodaj_opinie, name='dodaj_opinie'),
     path('kalendarz/', zajencia_view.kalendarz, name='kalendarz'),
     path('transakcja/<int:zajęcia_id>/<int:kursant_id>/', transakcje_views.transakcja, name='transakcja'),
+    path('zakoncz_zajecia/<int:zajęcia_id>/<int:kursant_id>/', transakcje_views.zakoncz_zajecia, name='zakoncz_zajecia'),
     path('', other_view.home, name='home'),
 ]

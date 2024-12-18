@@ -2,6 +2,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from .models import Sala, Samochód, Zajęcia, KursanciNaZajęciach
 from django.db import transaction
+from django.urls import reverse
 
 
 class TestTransakcja(TestCase):
@@ -21,7 +22,7 @@ class TestTransakcja(TestCase):
         # Tworzenie pozostałych obiektów: Sala, Samochód, Zajęcia
         print("Tworzenie sali, samochodu i zajęć...")
         self.sala = Sala.objects.create(nazwa="Sala 1", capacity=30, remaining_seats=30)
-        self.samochód = Samochód.objects.create(registration_number="XYZ123", model="Toyota", production_year="2015")
+        self.samochód = Samochód.objects.create(registration_number="XYZ123", model="Toyota", production_year="2015", availability=True)
         self.zajęcia = Zajęcia.objects.create(
             sala=self.sala,
             samochód=self.samochód,
@@ -30,6 +31,9 @@ class TestTransakcja(TestCase):
             godzina_zakończenia="12:00",
             data="2024-12-20"
         )
+
+        # Logowanie użytkownika
+        self.client.login(username='kursant', password='testpassword')
 
     def test_transakcja_sukces(self):
         # Test zapisu na zajęcia i zmiany liczby miejsc
@@ -54,9 +58,6 @@ class TestTransakcja(TestCase):
         self.sala.save()
 
         print("Sprawdzanie, czy rzuci wyjątek...")
-
-        # Dodajemy informację, że sala jest pełna
-        print(f"Brak dostępnych miejsc w sali: {self.sala.remaining_seats} miejsc.")
 
         with self.assertRaises(ValueError):  # Używamy ValueError, bo wyjątek tego typu będzie rzucany
             with transaction.atomic():
@@ -88,10 +89,73 @@ class TestTransakcja(TestCase):
 
         print(f"Sprawdzanie dostępności samochodu: {self.samochód.availability}")
 
-        # Sprawdzamy, czy nie można dodać kursanta do zajęć, jeśli samochód jest niedostępny
-        print("Sprawdzanie, czy rzuci wyjątek...")
         with self.assertRaises(ValueError):  # Używamy ValueError, bo wyjątek tego typu będzie rzucany
             with transaction.atomic():
                 if not self.samochód.availability:
                     raise ValueError("Nie udało się zapisać, samochód jest niedostępny.")
                 self.zajęcia.kursanci.add(self.kursant)
+    def test_zakoncz_zajecia_sukces(self):
+        print("\nTest zakoncz_zajecia_sukces: Sprawdzanie zakończenia zajęć...")
+
+        przed_godziny = self.kursant.godziny_lekcji_praktycznych
+        przed_lekcje = self.kursant.posiadane_lekcje_praktyczne
+        przed_zajecia_count = Zajęcia.objects.count()
+
+        # Dodajemy kursanta do zajęć, aby mógł zakończyć zajęcia
+        print(
+            f"Przed zapisaniem na zajęcia: Kursant godziny lekcji praktycznych: {przed_godziny}, posiadane lekcje: {przed_lekcje}")
+        self.zajęcia.kursanci.add(self.kursant)
+
+        # Sprawdzanie godziny przed zakończeniem zajęć
+        print(f"Godzina zajęć przed zakończeniem: {self.zajęcia.godzina_rozpoczęcia}")
+
+        response = self.client.post(reverse('zakoncz_zajecia', args=[self.zajęcia.id, self.kursant.id]))
+
+        # Sprawdzanie wyników po zakończeniu
+        print(
+            f"Po zakończeniu zajęć: Status odpowiedzi: {response.status_code}, wiadomość: {response.json().get('message')}")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()['message'], "Transakcja zakończona sukcesem!")
+
+        self.kursant.refresh_from_db()
+        print(
+            f"Po zakończeniu zajęć: Kursant godziny lekcji praktycznych: {self.kursant.godziny_lekcji_praktycznych}, posiadane lekcje: {self.kursant.posiadane_lekcje_praktyczne}")
+        self.assertEqual(self.kursant.godziny_lekcji_praktycznych, przed_godziny + 1)
+        self.assertEqual(self.kursant.posiadane_lekcje_praktyczne, przed_lekcje - 1)
+
+        print(f"Po zakończeniu zajęć: Liczba zajęć: {Zajęcia.objects.count()}")
+        self.assertEqual(Zajęcia.objects.count(), przed_zajecia_count - 1)
+
+    def test_kursant_nie_zapisany_na_zajecia(self):
+        print("\nTest kursant_nie_zapisany_na_zajecia: Sprawdzanie, gdy kursant nie jest zapisany...")
+
+        # Tworzymy innego kursanta, który nie jest zapisany na te zajęcia
+        inny_kursant = get_user_model().objects.create_user(
+            username='inny_kursant',
+            email='inny_kursant@example.com',
+            password='testpassword',
+            imię='Jan',
+            nazwisko='Kowalski',
+            typ_użytkownika='kursant'
+        )
+
+        print(f"Sprawdzanie, czy kursant {inny_kursant.username} jest zapisany na zajęcia...")
+
+        response = self.client.post(reverse('zakoncz_zajecia', args=[self.zajęcia.id, inny_kursant.id]))
+
+        # Sprawdzanie wyników, gdy kursant nie jest zapisany
+        print(f"Status odpowiedzi: {response.status_code}, błąd: {response.json().get('error')}")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error'], "Kursant nie jest zapisany na te zajęcia.")
+
+    def test_nieistniejące_zajecia(self):
+        print("\nTest nieistniejące_zajecia: Sprawdzanie, gdy zajęcia nie istnieją...")
+
+        # Próba zakończenia zajęć, które nie istnieją
+        response = self.client.post(reverse('zakoncz_zajecia', args=[999, 1]))  # Zajęcia o id 999 nie istnieją
+
+        # Sprawdzanie wyników
+        print(f"Status odpowiedzi: {response.status_code}, błąd: {response.json().get('error')}")
+        self.assertEqual(response.status_code, 404)
+        self.assertIn("Nie znaleziono wymaganych danych", response.json()['error'])
+
