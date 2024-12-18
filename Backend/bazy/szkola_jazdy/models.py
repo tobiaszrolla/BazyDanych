@@ -6,6 +6,7 @@ from django_cryptography.fields import encrypt
 class Sala(models.Model):
     nazwa = models.CharField(max_length=50, null=False, blank=False)
     capacity = models.IntegerField(default=30, verbose_name="Pojemność")
+    remaining_seats = models.IntegerField(default=30, verbose_name="Pozostałe miejsca")
     availability = models.BooleanField(default=True, verbose_name="Dostępność")
 
     def __str__(self):
