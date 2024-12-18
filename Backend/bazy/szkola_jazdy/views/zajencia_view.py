@@ -110,6 +110,7 @@ def zapisz_na_zajęcia(request, zajęcia_id):
     if KursanciNaZajęciach.objects.filter(użytkownik=request.user, zajęcia=zajęcia).exists():
         return JsonResponse({"error": "Już jesteś zapisany na te zajęcia."}, status=400)
 
+    posiadane_lekcje = request.POST.get("posiadane_lekcje")
     # Zapisanie kursanta na zajęcia
     KursanciNaZajęciach.objects.create(użytkownik=request.user, zajęcia=zajęcia)
     return JsonResponse({"message": "Zostałeś zapisany na zajęcia!"}, status=201)

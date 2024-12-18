@@ -15,6 +15,7 @@ urlpatterns = [
     path('zapisz_na_zajęcia/<str:zajęcia_id>/', zajencia_view.zapisz_na_zajęcia, name='zapisz_na_zajęcia'),
     path('zajecia/dostepne/', zajencia_view.dostępne_zajęcia, name='dostępne_zajęcia'),
     path('reset_password_request/', uzytkownik_views.reset_password_request, name='reset_password_request'),
+    path('zapisz_na_kurs/', uzytkownik_views.zapisz_na_kurs, name='zapisz_na_kurs'),
     path('dodaj_opinie/', uzytkownik_views.dodaj_opinie, name='dodaj_opinie'),
     path('', other_view.home, name='home'),
 ]

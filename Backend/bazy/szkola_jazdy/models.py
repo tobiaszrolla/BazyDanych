@@ -39,10 +39,12 @@ class Użytkownik(AbstractUser):
     nazwisko = encrypt(models.CharField(max_length=50))
     data_urodzenia = encrypt(models.DateField(null=True, blank=True))
     typ_użytkownika = models.CharField(max_length=10, choices=TYP_UŻYTKOWNIKA)
-    kategoria = models.CharField(max_length=3, choices=KATEGORIA)
-    godziny_wyjeżdżone = models.IntegerField(default=0)
-    posiadane_lekcje = models.IntegerField(default=0)
-    Opinie = models.CharField(max_length=250)
+    kategoria = models.CharField(max_length=3, choices=KATEGORIA, null=True)
+    godziny_lekcji_praktycznych = models.IntegerField(default=0)
+    godziny_lekcji_teoretycznych = models.IntegerField(default=0)
+    posiadane_lekcje_teoretycznych = models.IntegerField(default=0)
+    posiadane_lekcje_praktyczne = models.IntegerField(default=0)
+    Opinie = models.CharField(max_length=250, null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['imię', 'nazwisko']

@@ -1,3 +1,15 @@
+from django.db.models import Count
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from ..forms import RegistrationForm, LoginForm
+from django.views.generic import TemplateView
+from django.views.decorators.http import require_POST
+
+
 from django.contrib import messages
 from django.db.models import Count
 from django.shortcuts import render, redirect
@@ -38,13 +50,13 @@ def register(request):
             # Parsowanie danych JSON z żądania
             data = json.loads(request.body)
             email = data.get("email")
+            username = data.get("email")
             nrTelefonu = data.get("nrTelefonu", None)
             imię = data.get("imię")
             nazwisko = data.get("nazwisko")
             data_urodzenia = data.get("data_urodzenia", None)
             typ_użytkownika = data.get("typ_użytkownika")
             password = data.get("password")
-            kategoria = data.get("kategoria")
 
             # Walidacja: Sprawdzanie, czy wymagane dane są dostępne
             if not email or not imię or not nazwisko or not typ_użytkownika or not password:
@@ -54,12 +66,6 @@ def register(request):
             if Użytkownik.objects.filter(email=email).exists():
                 return JsonResponse({"error": "Email jest już zajęty."}, status=400)
 
-            data_urodzenia = datetime.strptime(data_urodzenia, "%Y-%m-%d")
-            wiek = oblicz_wiek(data_urodzenia)
-            kategorie_wiek = {"B": 18, "B1": 16, "C": 21}
-            wymagany_wiek = kategorie_wiek.get(kategoria)
-            if(wymagany_wiek > wiek ):
-                return JsonResponse({"error": "Nie masz wymaganego wieku."}, status=403)
 
             # Tworzenie użytkownika
             user = Użytkownik.objects.create(
@@ -70,8 +76,9 @@ def register(request):
                 nazwisko=nazwisko,
                 data_urodzenia=data_urodzenia,
                 typ_użytkownika=typ_użytkownika,
-                password=make_password(password),  # Hashowanie hasła
-                kategoria=kategoria
+                password=make_password(password),
+                kategoria=None,
+                Opinie=None
             )
             user.save()
             return JsonResponse({"message": "Użytkownik został zarejestrowany pomyślnie!"}, status=201)
@@ -84,6 +91,45 @@ def register(request):
 
     # Jeśli metoda żądania nie jest POST
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
+@csrf_exempt
+def zapisz_na_kurs(request):
+    if request.method == "PUT":
+        try:
+            data = json.loads(request.body)
+            kategoria = data.get("kategoria")
+            lekcje_teoretyczne = data.get("lekcje_teoretyczne",None)
+            lekcje_praktyczne = data.get("lekcje_praktyczne",None)
+
+            if not request.user.is_authenticated:
+                return JsonResponse({"error": "Musisz być zalogowany, aby stworzyć zajęcia."}, status=401)
+            if request.user.typ_użytkownika.lower() != 'kursant':
+                return JsonResponse({"error": "Musisz być pracownikiem, aby tworzyć zajęcia."}, status=403)
+            if not kategoria or not (lekcje_teoretyczne or lekcje_praktyczne):
+                return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
+            if request.user.kategoria != kategoria and request.user.kategoria != None:
+                return JsonResponse({"error": "robisz prawojazdy na inną kategorie"}, status=403)
+            kategorie_wiek = {"B": 18, "B1": 16, "C": 21}
+            wymagany_wiek = kategorie_wiek.get(kategoria)
+            wiek = oblicz_wiek(request.user.data_urodzenia)
+            if (wymagany_wiek > wiek):
+                return JsonResponse({"error": "Nie masz wymaganego wieku."}, status=403)
+            request.user.kategoria = kategoria
+            request.user.posiadane_lekcje_praktyczne += lekcje_praktyczne
+            request.user.posiadane_lekcje_teoretycznych += lekcje_teoretyczne
+            request.user.save()
+            return JsonResponse({"message": "Zapis na kurs zakończony sukcesem."}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe"}, status=400)
+
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+
+
+
 
 @csrf_exempt
 def login(request):
