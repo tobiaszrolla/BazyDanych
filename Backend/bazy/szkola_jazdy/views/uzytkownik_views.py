@@ -218,6 +218,7 @@ def modify_user(request, email):
             return JsonResponse({"error": "Użytkownik o tym e-mailu nie istnieje."}, status=404)
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+    return JsonResponse({"error": "Metoda nie jest dozwolona."}, status=405)
 
 @csrf_exempt
 def reset_password_request(request):
