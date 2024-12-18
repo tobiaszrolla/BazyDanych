@@ -20,6 +20,8 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime
+import random
+import string
 def is_admin(user):
     return user.is_superuser
 
@@ -170,20 +172,20 @@ def reset_password_request(request):
             if not user:
                 return JsonResponse({"error": "Nie znaleziono użytkownika z podanym adresem e-mail."}, status=404)
 
-            # Generowanie tokena i UID
-            token = default_token_generator.make_token(user)
-            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            # Generowanie nowego losowego hasła
+            new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
 
-            # Utworzenie linku resetowania hasła
-            reset_link = f"http://localhost:8000/reset_password/{uid}/{token}/"
+            # Ustawienie nowego hasła dla użytkownika
+            user.set_password(new_password)
+            user.save()
 
-            # Wysłanie e-maila (wyświetlanego w konsoli lokalnej)
-            subject = "Resetowanie hasła"
-            message = f"Aby zresetować swoje hasło, odwiedź: {reset_link}"
+            # Wysłanie e-maila z nowym hasłem (wyświetlanego w konsoli lokalnej)
+            subject = "Twoje nowe hasło"
+            message = f"Twoje nowe hasło to: {new_password}\nZalecamy, aby po zalogowaniu zmienić hasło na swoje własne."
             from_email = settings.DEFAULT_FROM_EMAIL
             send_mail(subject, message, from_email, [user.email])
 
-            return JsonResponse({"message": "Wysłano e-mail z linkiem do resetowania hasła."}, status=200)
+            return JsonResponse({"message": "Wysłano e-mail z nowym hasłem."}, status=200)
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "Nieprawidłowe dane wejściowe."}, status=400)

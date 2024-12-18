@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import Count
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -8,7 +9,6 @@ from django.utils.http import urlsafe_base64_encode
 from ..forms import RegistrationForm, LoginForm
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_POST
-
 
 import json
 from django.http import JsonResponse
@@ -169,3 +169,47 @@ def dostępne_zajęcia(request):
 
     # Jeśli metoda żądania nie jest GET
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj GET."}, status=405)
+
+
+@login_required
+@require_POST
+def email_na_zajęcia(request, zajęcia_id):
+    try:
+        zajęcia = Zajęcia.objects.get(id=zajęcia_id)
+    except Zajęcia.DoesNotExist:
+        return JsonResponse({"error": "Nie znaleziono zajęć."}, status=404)
+
+    # Sprawdzenie, czy użytkownik już jest zapisany
+    if KursanciNaZajęciach.objects.filter(użytkownik=request.user, zajęcia=zajęcia).exists():
+        return JsonResponse({"error": "Już jesteś zapisany na te zajęcia."}, status=400)
+
+    # Zapisanie użytkownika na zajęcia
+    KursanciNaZajęciach.objects.create(użytkownik=request.user, zajęcia=zajęcia)
+
+    # Przygotowanie danych do e-maila
+    subject = "Potwierdzenie zapisu na zajęcia"
+    message = (
+        f"Cześć {request.user.imię},\n\n"
+        f"Zostałeś zapisany na zajęcia:\n\n"
+        f"Data: {zajęcia.data.strftime('%d.%m.%Y')}\n"
+        f"Godzina: {zajęcia.godzina_rozpoczęcia.strftime('%H:%M')} - {zajęcia.godzina_zakończenia.strftime('%H:%M')}\n"
+    )
+    if zajęcia.sala:
+        message += f"Sala: {zajęcia.sala.nazwa}\n"
+    if zajęcia.samochód:
+        message += f"Samochód: {zajęcia.samochód.model} ({zajęcia.samochód.registration_number})\n"
+    if zajęcia.instruktor:
+        message += f"Instruktor: {zajęcia.instruktor.imię} {zajęcia.instruktor.nazwisko}\n"
+
+    message += "\nDziękujemy za zapisanie się i do zobaczenia na zajęciach!\n"
+
+    from_email = settings.DEFAULT_FROM_EMAIL
+    recipient_list = [request.user.email]
+
+    # Wysyłanie e-maila
+    try:
+        send_mail(subject, message, from_email, recipient_list)
+        return JsonResponse({"message": "Zostałeś zapisany na zajęcia! E-mail potwierdzający został wysłany."},
+                            status=201)
+    except Exception as e:
+        return JsonResponse({"error": f"Nie udało się wysłać e-maila: {str(e)}"}, status=500)
