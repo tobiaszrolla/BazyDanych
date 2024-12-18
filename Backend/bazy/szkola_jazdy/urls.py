@@ -14,5 +14,6 @@ urlpatterns = [
     path('delete_zajęcia/<str:numer_zajęć>/', views.delete_zajęcia, name='delete_zajęcia'),
     path('zapisz_na_zajęcia/<str:zajęcia_id>/', views.zapisz_na_zajęcia, name='zapisz_na_zajęcia'),
     path('zajecia/dostepne/', views.dostępne_zajęcia, name='dostępne_zajęcia'),
+    path('reset_password_request/', views.reset_password_request, name='reset_password_request'),
     path('', views.home, name='home'),
 ]

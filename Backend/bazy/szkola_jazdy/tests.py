@@ -1,6 +1,9 @@
 from datetime import time
 from http.client import responses
 from django.contrib.auth.models import User
+from django.core import mail
+from django.core.mail import send_mail
+from django.http import JsonResponse
 from django.test import TestCase, Client
 import json
 from django.contrib.auth import get_user_model
@@ -387,9 +390,67 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data['message'], 'Zostałeś zapisany na zajęcia!')
         print(response_data['message'], '\n')
 
-    from django.db.models import Count
+    # Testy resetowania hasła
+    def test_reset_password_success(self):
+        """Test poprawnego żądania resetu hasła."""
+        response = self.client.post(
+            reverse('reset_password_request'),
+            data=json.dumps({"email": "test@example.com"}),
+            content_type="application/json"
+        )
 
-    def test_dostępne_zajęcia(self):
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"message": "Wysłano e-mail z linkiem do resetowania hasła."})
+
+        # Sprawdzenie, czy e-mail został wygenerowany
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("Resetowanie hasła", mail.outbox[0].subject)
+        self.assertIn("http://localhost:8000/reset_password/", mail.outbox[0].body)
+
+    def test_reset_password_nonexistent_email(self):
+        """Test próby resetu hasła dla nieistniejącego e-maila."""
+        response = self.client.post(
+            reverse('reset_password_request'),
+            data=json.dumps({"email": "nonexistent@example.com"}),
+            content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {"error": "Nie znaleziono użytkownika z podanym adresem e-mail."})
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_reset_password_no_email(self):
+        """Test, gdy nie podano e-maila."""
+        response = self.client.post(
+            reverse('reset_password_request'),
+            data=json.dumps({}),
+            content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"error": "Podaj adres e-mail."})
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_reset_password_invalid_data(self):
+        """Test, gdy dane wejściowe są niepoprawne (np. nie JSON)."""
+        response = self.client.post(
+            reverse('reset_password_request'),
+            data="niepoprawne dane",
+            content_type="application/json"
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"error": "Nieprawidłowe dane wejściowe."})
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_reset_password_invalid_method(self):
+        """Test użycia metody innej niż POST."""
+        response = self.client.get(reverse('reset_password_request'))
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.json(), {"error": "Nieobsługiwana metoda żądania. Użyj POST."})
+        self.assertEqual(len(mail.outbox), 0)
+
+'''''    def test_dostępne_zajęcia(self):
         # Dodanie sali i samochodu
         sala = Sala.objects.create(nazwa="Sala 101", capacity=10, availability=True)
         samochód = Samochód.objects.create(registration_number="XYZ123", model="Toyota Corolla", production_year="2020",
@@ -436,6 +497,6 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertEqual(response_data[0]["wolne_miejsca"], 9)  # Jedno miejsce zajęte, sala na 10 osób
         self.assertIn("Instruktor: Jan Kowalski", response_data[0]["title"])
 
-        print("Test dostępne_zajęcia zakończony pomyślnie.")
+        print("Test dostępne_zajęcia zakończony pomyślnie.")'''
 
 

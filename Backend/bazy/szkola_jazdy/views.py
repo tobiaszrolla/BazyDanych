@@ -4,12 +4,12 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from .forms import RegistrationForm, LoginForm
 from django.views.generic import TemplateView
 from django.views.decorators.http import require_POST
-
-
+from django.conf import settings
 import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -442,3 +442,39 @@ def dostępne_zajęcia(request):
     # Jeśli metoda żądania nie jest GET
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj GET."}, status=405)
 
+
+@csrf_exempt
+def reset_password_request(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            email = data.get("email")
+
+            if not email:
+                return JsonResponse({"error": "Podaj adres e-mail."}, status=400)
+
+            user = User.objects.filter(email=email).first()
+            if not user:
+                return JsonResponse({"error": "Nie znaleziono użytkownika z podanym adresem e-mail."}, status=404)
+
+            # Generowanie tokena i UID
+            token = default_token_generator.make_token(user)
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+            # Utworzenie linku resetowania hasła
+            reset_link = f"http://localhost:8000/reset_password/{uid}/{token}/"
+
+            # Wysłanie e-maila (wyświetlanego w konsoli lokalnej)
+            subject = "Resetowanie hasła"
+            message = f"Aby zresetować swoje hasło, odwiedź: {reset_link}"
+            from_email = settings.DEFAULT_FROM_EMAIL
+            send_mail(subject, message, from_email, [user.email])
+
+            return JsonResponse({"message": "Wysłano e-mail z linkiem do resetowania hasła."}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe."}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
