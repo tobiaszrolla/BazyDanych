@@ -1,19 +1,19 @@
 from django.urls import path
-from . import views
+from .views import other_view, sala_views, samochod_views,uzytkownik_views,zajencia_view
 
 urlpatterns = [
-    path('register/', views.register, name='register'),
-    path('login/', views.login, name='login'),
-    path('logout/', views.logout, name='logout'),
-    path('add_car/', views.add_car, name='add_car'),
-    path('add_room/', views.add_room, name='add_room'),
-    path('add_zajęcia/', views.add_zajęcia, name='add_zajęcia'),  # Dodajemy ten endpoint
-    path('delete_car/<str:registration_number>/', views.delete_car, name='delete_car'),
-    path('delete_room/<str:room_name>/', views.delete_room, name='delete_room'),
-    path('delete_user/<str:email>/', views.delete_user, name='delete_user'),
-    path('delete_zajęcia/<str:numer_zajęć>/', views.delete_zajęcia, name='delete_zajęcia'),
-    path('zapisz_na_zajęcia/<str:zajęcia_id>/', views.zapisz_na_zajęcia, name='zapisz_na_zajęcia'),
-    path('zajecia/dostepne/', views.dostępne_zajęcia, name='dostępne_zajęcia'),
-    path('reset_password_request/', views.reset_password_request, name='reset_password_request'),
-    path('', views.home, name='home'),
+    path('register/', uzytkownik_views.register, name='register'),
+    path('login/', uzytkownik_views.login, name='login'),
+    path('logout/', uzytkownik_views.logout, name='logout'),
+    path('add_car/', samochod_views.add_car, name='add_car'),
+    path('add_room/', sala_views.add_room, name='add_room'),
+    path('add_zajęcia/', zajencia_view.add_zajęcia, name='add_zajęcia'),  # Dodajemy ten endpoint
+    path('delete_car/<str:registration_number>/', samochod_views.delete_car, name='delete_car'),
+    path('delete_room/<str:room_name>/', sala_views.delete_room, name='delete_room'),
+    path('delete_user/<str:email>/', uzytkownik_views.delete_user, name='delete_user'),
+    path('delete_zajęcia/<str:numer_zajęć>/', zajencia_view.delete_zajęcia, name='delete_zajęcia'),
+    path('zapisz_na_zajęcia/<str:zajęcia_id>/', zajencia_view.zapisz_na_zajęcia, name='zapisz_na_zajęcia'),
+    path('zajecia/dostepne/', zajencia_view.dostępne_zajęcia, name='dostępne_zajęcia'),
+    path('reset_password_request/', uzytkownik_views.reset_password_request, name='reset_password'),
+    path('', other_view.home, name='home'),
 ]
