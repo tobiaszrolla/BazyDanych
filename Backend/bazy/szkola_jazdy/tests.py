@@ -52,6 +52,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
                       password,
                       data_urodzenia,
                       typ_użytkownika,
+                      kategoria
                       ):
         data = {
             'email': email,
@@ -61,6 +62,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
             'data_urodzenia': data_urodzenia,
             'typ_użytkownika': typ_użytkownika,
             'password': password,
+            'kategoria': kategoria
         }
         response = self.client.post(
             '/register/',
@@ -161,7 +163,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         self.assertIn(oczekiwana_zawartość, response.content.decode(),
                       f"Oczekiwana zawartość: '{oczekiwana_zawartość}' nie została znaleziona w odpowiedzi")
     def test_register(self):
-        response = self.register_user('test@domena.com','strong_password', '2003-03-03','kursant')
+        response = self.register_user('test@domena.com','strong_password', '2003-03-03','kursant','B')
         self.assertEqual(response.status_code, 201)
         response_data = response.json()
         self.assertIn('message', response_data)
@@ -177,7 +179,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
 
     def test_login(self):
         # Rejestracja użytkownika
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant', 'B')
         # Logowanie użytkownika
         response = self.login_user('test@domena.com', 'strong_password')
         self.assertEqual(response.status_code, 200)
@@ -189,7 +191,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
 
     def test_logout(self):
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant', 'B')
         self.login_user('test@domena.com', 'strong_password')
         response = self.logout_user()
         self.assertEqual(response.status_code, 200)
@@ -200,10 +202,10 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
 
     def test_uniqemail(self):
         #1 user
-        response = self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        response = self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant','B')
         self.assertEqual(response.status_code, 201)
         #2 user z takim samym mailem
-        response = self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        response = self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant','B')
         #wypisanie błędu
         self.assertEqual(response.status_code, 400)
         response_data = response.json()
@@ -212,7 +214,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['error'], "\n Faktycznie nieda się utworzyć takich samych maili.\n")
     def test_wrong_password(self):
         #rejestracja
-        response = self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        response = self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant','B')
         self.assertEqual(response.status_code, 201)
         #logowanie z błędnym hasłem
         response = self.login_user('test@domena.com', 'wrong_password')
@@ -286,7 +288,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         session = self.client.session
         create_admin()
         self.login_user('admin@domain.com', 'strong_password')
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant', 'B')
         # Sprawdzanie, czy użytkownik istnieje przed usunięciem
         self.assertTrue(get_user_model().objects.filter(email='test@domena.com').exists())
         # Usuwanie użytkownika
@@ -309,7 +311,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         print(response_data['message'], '\n')
 
     def test_logout(self):
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'kursant','B')
         self.login_user('test@domena.com', 'strong_password')
         response = self.logout_user()
         self.assertEqual(response.status_code, 200)
@@ -321,7 +323,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         session = self.client.session #tworzy sesję
         create_admin()
         self.login_user('admin@domain.com', 'strong_password')
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor','B')
         self.add_sala(13,True,'c123')
         self.logout_user()
         self.login_user('test@domena.com', 'strong_password')
@@ -336,7 +338,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         session = self.client.session
         create_admin()
         self.login_user('admin@domain.com', 'strong_password')
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor', 'B')
         self.add_sala(13, True, 'c123')
         self.logout_user()
         self.login_user('test@domena.com', 'strong_password')
@@ -351,7 +353,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         session = self.client.session  # Tworzenie sesji
         create_admin()
         self.login_user('admin@domain.com', 'strong_password')
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor', 'B')
         self.add_sala(13, True, 'c123')  # Dodanie sali
         self.logout_user()
         self.login_user('test@domena.com', 'strong_password')
@@ -391,8 +393,8 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
         session = self.client.session
         create_admin()
         self.login_user('admin@domain.com', 'strong_password')
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
-        self.register_user('test2@domena.com', 'strong_password', '2003-03-03', 'kursant')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor','B')
+        self.register_user('test2@domena.com', 'strong_password', '2003-03-03', 'kursant', 'B')
         self.add_car('DH1234', 'Toyota Yaris', '1980', True)
         self.assertTrue(Samochód.objects.filter(registration_number='DH1234').exists(),"Samochód nie został dodany do bazy danych")
 
@@ -414,7 +416,7 @@ class RegisterTest(TestCase):  # Klasa testowa dziedziczy po TestCase
 
     def test_cryptography(self):
         session = self.client.session
-        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor')
+        self.register_user('test@domena.com', 'strong_password', '2003-03-03', 'instruktor', 'B')
     # Testy resetowania hasła
     def test_reset_password_success(self):
         """Test poprawnego żądania resetu hasła."""

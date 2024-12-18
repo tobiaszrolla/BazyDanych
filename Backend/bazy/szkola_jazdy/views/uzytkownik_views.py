@@ -20,8 +20,14 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime
+
 def is_admin(user):
     return user.is_superuser
+
+def oblicz_wiek(data_urodzenia):
+    dzisiaj = datetime.today()
+    wiek = dzisiaj.year - data_urodzenia.year - ((dzisiaj.month, dzisiaj.day) < (data_urodzenia.month, data_urodzenia.day))
+    return wiek
 
 @csrf_exempt
 def register(request):
@@ -36,6 +42,7 @@ def register(request):
             data_urodzenia = data.get("data_urodzenia", None)
             typ_użytkownika = data.get("typ_użytkownika")
             password = data.get("password")
+            kategoria = data.get("kategoria")
 
             # Walidacja: Sprawdzanie, czy wymagane dane są dostępne
             if not email or not imię or not nazwisko or not typ_użytkownika or not password:
@@ -44,6 +51,13 @@ def register(request):
             # Sprawdzenie, czy e-mail jest już zajęty
             if Użytkownik.objects.filter(email=email).exists():
                 return JsonResponse({"error": "Email jest już zajęty."}, status=400)
+
+            data_urodzenia = datetime.strptime(data_urodzenia, "%Y-%m-%d")
+            wiek = oblicz_wiek(data_urodzenia)
+            kategorie_wiek = {"B": 18, "B1": 16, "C": 21}
+            wymagany_wiek = kategorie_wiek.get(kategoria)
+            if(wymagany_wiek > wiek ):
+                return JsonResponse({"error": "Nie masz wymaganego wieku."}, status=403)
 
             # Tworzenie użytkownika
             user = Użytkownik.objects.create(
@@ -54,7 +68,8 @@ def register(request):
                 nazwisko=nazwisko,
                 data_urodzenia=data_urodzenia,
                 typ_użytkownika=typ_użytkownika,
-                password=make_password(password)  # Hashowanie hasła
+                password=make_password(password),  # Hashowanie hasła
+                kategoria=kategoria
             )
             user.save()
             return JsonResponse({"message": "Użytkownik został zarejestrowany pomyślnie!"}, status=201)
