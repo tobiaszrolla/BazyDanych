@@ -64,10 +64,21 @@ def zakoncz_zajecia(request, zajęcia_id, kursant_id):
     try:
         # Rozpoczęcie transakcji
         with transaction.atomic():
-            # 1. Aktualizacja godzin kursanta
-            kursant.godziny_lekcji_praktycznych += 1  # Przykład, zmień według wymagań
-            kursant.posiadane_lekcje_praktyczne -= 1  # Zmniejszenie liczby dostępnych lekcji
-            kursant.save()
+            if zajęcia.sala:  # Zajęcia teoretyczne
+                if kursant.posiadane_lekcje_teoretyczne <= 0:
+                    return JsonResponse({"error": "Brak dostępnych godzin teoretycznych."}, status=400)
+
+                # Aktualizacja godzin teoretycznych
+                kursant.godziny_lekcje_teoretyczne += 1
+                kursant.posiadane_lekcje_teoretyczne -= 1
+
+            elif zajęcia.samochód:  # Zajęcia praktyczne
+                if kursant.posiadane_lekcje_praktyczne <= 0:
+                    return JsonResponse({"error": "Brak dostępnych godzin praktycznych."}, status=400)
+
+                # Aktualizacja godzin praktycznych
+                kursant.godziny_lekcji_praktycznych += 1
+                kursant.posiadane_lekcje_praktyczne -= 1
 
             # 2. Usunięcie zajęć
             zajęcia.delete()

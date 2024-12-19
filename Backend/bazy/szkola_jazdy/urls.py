@@ -22,7 +22,8 @@ urlpatterns = [
     path('dodaj_opinie/', uzytkownik_views.dodaj_opinie, name='dodaj_opinie'),
     path('kalendarz/', zajencia_view.kalendarz, name='kalendarz'),
     path('transakcja/<int:zajęcia_id>/<int:kursant_id>/', transakcje_views.transakcja, name='transakcja'),
-    path('zakoncz_zajecia/<int:zajęcia_id>/<int:kursant_id>/', transakcje_views.zakoncz_zajecia, name='zakoncz_zajecia'),
+    path('zakoncz_zajecia/<int:zajęcia_id>/<int:kursant_id>/', zajencia_view.zakoncz_zajecia, name='zakoncz_zajecia'),
     path('zajęcia/<int:zajęcia_id>/zapisz/', zajencia_view.zapisz_na_zajęcia, name='zapisz_na_zajacia'),
+    path('verify_code/', uzytkownik_views.verify_code, name='verify_code'),
     path('', other_view.home, name='home'),
 ]

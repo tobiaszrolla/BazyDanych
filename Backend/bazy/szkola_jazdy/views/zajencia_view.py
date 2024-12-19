@@ -261,4 +261,36 @@ def kalendarz(request):
         logger.error(f"Error in kalendarz view: {str(e)}")
         return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
+@login_required
+@require_POST
+def zakoncz_zajecia(request, zajęcia_id, kursant_id):
+    try:
+        # Pobranie zajęć i użytkownika
+        zajęcia = Zajęcia.objects.get(id=zajęcia_id)
+        kursant = Użytkownik.objects.get(id=kursant_id)
+
+        # Sprawdzenie, czy kursant jest zapisany na te zajęcia
+        if not KursanciNaZajęciach.objects.filter(użytkownik=kursant, zajęcia=zajęcia).exists():
+            return JsonResponse({"error": "Kursant nie jest zapisany na te zajęcia."}, status=400)
+
+    except (Zajęcia.DoesNotExist, Użytkownik.DoesNotExist) as e:
+        return JsonResponse({"error": f"Nie znaleziono wymaganych danych: {str(e)}"}, status=404)
+
+    try:
+        # Rozpoczęcie transakcji
+        with transaction.atomic():
+            # 1. Aktualizacja godzin kursanta
+            kursant.godziny_lekcji_praktycznych += 1  # Przykład, zmień według wymagań
+            kursant.posiadane_lekcje_praktyczne -= 1  # Zmniejszenie liczby dostępnych lekcji
+            kursant.save()
+
+            # 2. Usunięcie zajęć
+            zajęcia.delete()
+
+            return JsonResponse({"message": "Transakcja zakończona sukcesem!"}, status=201)
+
+    except Exception as e:
+        # Jeśli wystąpi jakikolwiek błąd, cała transakcja zostanie wycofana
+        return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=400)
+
 
