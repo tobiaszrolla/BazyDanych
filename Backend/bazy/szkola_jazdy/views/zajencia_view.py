@@ -47,6 +47,7 @@ def add_zajęcia(request):
         numer_rejestracyjny = data.get("numer_rejestracyjny")
         godzina_rozpoczęcia = data.get("godzina_rozpoczęcia")
         godzina_zakończenia = data.get("godzina_zakończenia")
+        kategoria = data.get("kategoria")
         data = data.get("data")
 
         if not nazwa_sali and not numer_rejestracyjny:
@@ -89,6 +90,7 @@ def add_zajęcia(request):
             instruktor=instruktor,
             godzina_rozpoczęcia=godzina_rozpoczęcia,
             godzina_zakończenia=godzina_zakończenia,
+            kategoria=kategoria,
             data = data
         )
 
