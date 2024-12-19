@@ -42,8 +42,8 @@ class Użytkownik(AbstractUser):
     typ_użytkownika = models.CharField(max_length=10, choices=TYP_UŻYTKOWNIKA)
     kategoria = models.CharField(max_length=3, choices=KATEGORIA, null=True)
     godziny_lekcji_praktycznych = models.IntegerField(default=0)
-    godziny_lekcji_teoretycznych = models.IntegerField(default=0)
-    posiadane_lekcje_teoretycznych = models.IntegerField(default=30)
+    godziny_lekcje_teoretyczne = models.IntegerField(default=0)
+    posiadane_lekcje_teoretyczne = models.IntegerField(default=30)
     posiadane_lekcje_praktyczne = models.IntegerField(default=30)
     Opinie = models.CharField(max_length=250, null=True, blank=True)
 

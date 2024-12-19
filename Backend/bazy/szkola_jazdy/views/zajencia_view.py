@@ -104,24 +104,7 @@ def add_zajęcia(request):
         }, status=201)
 
     return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
-"""
-@login_required
-@require_POST
-def zapisz_na_zajęcia(request, zajęcia_id):
-    try:
-        zajęcia = Zajęcia.objects.get(id=zajęcia_id)
-    except Zajęcia.DoesNotExist:
-        return JsonResponse({"error": "Nie znaleziono zajęć."}, status=404)
 
-    # Sprawdzenie, czy kursant już jest zapisany na te zajęcia
-    if KursanciNaZajęciach.objects.filter(użytkownik=request.user, zajęcia=zajęcia).exists():
-        return JsonResponse({"error": "Już jesteś zapisany na te zajęcia."}, status=400)
-
-    posiadane_lekcje = request.POST.get("posiadane_lekcje")
-    # Zapisanie kursanta na zajęcia
-    KursanciNaZajęciach.objects.create(użytkownik=request.user, zajęcia=zajęcia)
-    return JsonResponse({"message": "Zostałeś zapisany na zajęcia!"}, status=201)
-"""
 
 @login_required
 @require_POST
@@ -134,11 +117,13 @@ def zapisz_na_zajęcia(request, zajęcia_id):
         kursant = request.user
 
         # Sprawdzenie, czy kursant już jest zapisany na te zajęcia
+        if(kursant.typ_użytkownika.lower() != 'kursant'):
+            return JsonResponse({"error": "Nie jesteś klientem."}, status=400)
         if KursanciNaZajęciach.objects.filter(użytkownik=kursant, zajęcia=zajęcia).exists():
             return JsonResponse({"error": "Już jesteś zapisany na te zajęcia."}, status=400)
 
         # Sprawdzenie dostępności miejsc
-        if zajęcia.dostępne_miejsca <= 0:
+        if zajęcia.dostempne_miejsca <= 0:
             return JsonResponse({"error": "Brak dostępnych miejsc na te zajęcia."}, status=400)
 
         # Rozpoczęcie transakcji
@@ -147,22 +132,14 @@ def zapisz_na_zajęcia(request, zajęcia_id):
             KursanciNaZajęciach.objects.create(użytkownik=kursant, zajęcia=zajęcia)
 
             # Zmniejszenie liczby dostępnych miejsc
-            zajęcia.dostępne_miejsca -= 1
+            zajęcia.dostempne_miejsca -= 1
             zajęcia.save()
 
             # Aktualizacja godzin lekcji kursanta
-            if zajęcia.samochód:
-                if kursant.posiadane_lekcje_praktyczne <= 0:
+            if zajęcia.samochód and kursant.posiadane_lekcje_praktyczne <= 0:
+                return JsonResponse({"error": "Nie posiadasz lekcji praktycznyh."}, status=400)
+            if zajęcia.sala and kursant.posiadane_lekcje_teoretyczne <= 0:
                     return JsonResponse({"error": "Nie posiadasz lekcji teoretycznych."}, status=400)
-                kursant.godziny_lekcji_praktycznych += 1  # Dodanie 1 godziny
-                kursant.dostempne_posiadane_lekcje_praktyczne -= 1
-                kursant.save()
-            if zajęcia.sala:
-                if kursant.posiadane_lekcje_teoretyczne <= 0:
-                    return JsonResponse({"error": "Nie posiadasz lekcji praktycznych."}, status=400)
-                kursant.godziny_lekcji_teoretycznych += 1  # Dodanie 1 godziny
-                kursant.dostempne_posiadane_lekcje_teoretyczne -= 1
-                kursant.save()
 
             # Wysłanie e-maila potwierdzającego zapisanie na zajęcia
             subject = "Potwierdzenie zapisu na zajęcia"
@@ -189,14 +166,14 @@ def zapisz_na_zajęcia(request, zajęcia_id):
 
 
 @login_required
-def delete_zajęcia(request, numer_zajęć):
+def delete_zajęcia(request, zajęcia_id):
     if request.method == "DELETE":
         # Sprawdzenie, czy użytkownik ma odpowiedni typ
         if request.user.typ_użytkownika.lower() not in ['instruktor', 'pracownik']:
             return JsonResponse({"error": "Musisz być pracownikiem, aby usuwać zajęcia."}, status=403)
 
         # Wyszukiwanie zajęć po `id`
-        zajęcia = Zajęcia.objects.filter(id=numer_zajęć).first()
+        zajęcia = Zajęcia.objects.filter(id=zajęcia_id).first()
         if not zajęcia:
             return JsonResponse({"error": "Nie znaleziono zajęć o podanym numerze."}, status=404)
 
@@ -206,7 +183,7 @@ def delete_zajęcia(request, numer_zajęć):
 
         # Usunięcie zajęć
         zajęcia.delete()
-        return JsonResponse({"success": "Zajęcia zostały pomyślnie usunięte."}, status=200)
+        return JsonResponse({"message": "Zajęcia zostały pomyślnie usunięte."}, status=200)
 
     return JsonResponse({"error": "Nieprawidłowa metoda HTTP."}, status=405)
 
@@ -218,11 +195,12 @@ def dostępne_zajęcia(request):
     """
     if request.method == "GET":
         try:
+            user = request.user
+            if user.typ_użytkownika.lower() != 'kursant':
+                return JsonResponse({"error": "Nie masz odpowiednich uprawnień"}, status=400)
+
             # Adnotacja liczby zapisanych kursantów
-            zajęcia_list = Zajęcia.objects.annotate(
-                liczba_kursantów=Count('kursanci'),
-                wolne_miejsca=('maksymalna_liczba_kursantów') - Count('kursanci')
-            ).filter(wolne_miejsca__gt=0).select_related('sala', 'samochód', 'instruktor')
+            zajęcia_list = Zajęcia.objects.filter(dostempne_miejsca__gt=0, kategoria=user.kategoria).select_related('sala', 'samochód', 'instruktor')
 
             # Przygotowanie listy zajęć z dodatkowymi informacjami
             events = []
@@ -232,7 +210,12 @@ def dostępne_zajęcia(request):
                     "title": f"Instruktor: {zajęcia.instruktor} | Sala: {zajęcia.sala.nazwa if zajęcia.sala else 'Brak'}",
                     "start": zajęcia.godzina_rozpoczęcia.strftime("%H:%M"),
                     "end": zajęcia.godzina_zakończenia.strftime("%H:%M"),
-                    "wolne_miejsca": zajęcia.wolne_miejsca,
+                    "wolne_miejsca": zajęcia.dostempne_miejsca,
+                    "data": zajęcia.data,
+                    "kategoria": zajęcia.kategoria,
+                    "sala": zajęcia.sala.nazwa if zajęcia.sala else 'Brak',
+                    "samochód": zajęcia.samochód.registration_number if zajęcia.samochód else 'Brak',
+                    "instruktor": zajęcia.instruktor.email if zajęcia.instruktor else 'Brak'
                 })
 
             return JsonResponse(events, safe=False, status=200)

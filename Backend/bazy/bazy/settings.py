@@ -85,14 +85,12 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'szkoła-jazdy',
         'USER': 'root',
-        'PASSWORD': 'Ulica123456789',
+        'PASSWORD': 'Baksztag1!',
         'HOST': 'localhost',
         'PORT': '3306',
     }
 }
 
-DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
-DBBACKUP_STORAGE_OPTIONS = {'location': 'C:\\Users\\Dell\\Desktop\\Studia\\semestr 5\\Rudy\\BazyDanych\\Backend\\backup'}
 
 
 # Password validation
@@ -122,7 +120,7 @@ SITE_ID = 1
 
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_REQUIRED = True
-EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'no-reply@example.com'
 
 

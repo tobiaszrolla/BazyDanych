@@ -107,7 +107,7 @@ def zapisz_na_kurs(request):
 
             if not request.user.is_authenticated:
                 return JsonResponse({"error": "Musisz być zalogowany, aby stworzyć zajęcia."}, status=401)
-            if request.user.typ_użytkownika.lower() != 'kursant':
+            if request.user.typ_użytkownika.lower() != 'kursant' or request.user.is_superuser:
                 return JsonResponse({"error": "Musisz być pracownikiem, aby tworzyć zajęcia."}, status=403)
             if not kategoria or not (lekcje_teoretyczne or lekcje_praktyczne):
                 return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
@@ -120,7 +120,7 @@ def zapisz_na_kurs(request):
                 return JsonResponse({"error": "Nie masz wymaganego wieku."}, status=403)
             request.user.kategoria = kategoria
             request.user.posiadane_lekcje_praktyczne += lekcje_praktyczne
-            request.user.posiadane_lekcje_teoretycznych += lekcje_teoretyczne
+            request.user.posiadane_lekcje_teoretyczne += lekcje_teoretyczne
             request.user.save()
             return JsonResponse({"message": "Zapis na kurs zakończony sukcesem."}, status=200)
 
@@ -128,6 +128,7 @@ def zapisz_na_kurs(request):
             return JsonResponse({"error": "Nieprawidłowe dane wejściowe"}, status=400)
 
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
@@ -152,7 +153,6 @@ def login(request):
             data = json.loads(request.body)
             email = data.get("email")
             password = data.get("password")
-            code = data.get("code")  # Kod weryfikacyjny
 
             if not email or not password:
                 return JsonResponse({"error": "Email i hasło są wymagane."}, status=400)
@@ -160,28 +160,62 @@ def login(request):
             user = authenticate(request, username=email, password=password)
 
             if user is not None:
-                if not user.is_superuser:
-                    django_login(request, user)
-                    return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
+                if user.is_superuser:
+                    # Administrator - jeśli kod nie jest podany, wyślij kod weryfikacyjny
+                    if not user.verification_code:
+                        send_verification_code(user)
+                        return JsonResponse({"message": "Kod weryfikacyjny został wysłany na e-mail."}, status=202)
 
-                # Administrator - etap weryfikacji kodu
-                if not code:  # Jeśli kod nie został podany
-                    send_verification_code(user)
-                    return JsonResponse({"message": "Kod weryfikacyjny został wysłany na e-mail."}, status=202)
+                    # Jeśli użytkownik podał kod, sprawdź go w innym widoku (weryfikacja)
+                    return JsonResponse({"message": "Wprowadź kod weryfikacyjny, aby zakończyć logowanie."}, status=200)
 
-                if code == user.verification_code and user.verification_code_expiry > datetime.now():
+                # Logowanie użytkowników (nieadministratorów)
+                django_login(request, user)
+                return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
+
+            else:
+                return JsonResponse({"error": "Nieprawidłowy email lub hasło."}, status=401)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."},
+                                status=400)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
+
+@csrf_exempt
+def verify_code(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            email = data.get("email")
+            code = data.get("code")
+
+            if not email or not code:
+                return JsonResponse({"error": "Email i kod weryfikacyjny są wymagane."}, status=400)
+
+            user = User.objects.get(email=email)
+
+            if user.is_superuser:
+                if user.verification_code == code and user.verification_code_expiry > datetime.now():
                     user.verification_code = None  # Reset kodu
                     user.verification_code_expiry = None
                     user.save()
+
                     django_login(request, user)
                     return JsonResponse({"message": "Administrator zalogowany pomyślnie."}, status=200)
                 else:
                     return JsonResponse({"error": "Nieprawidłowy kod weryfikacyjny lub kod wygasł."}, status=401)
             else:
-                return JsonResponse({"error": "Nieprawidłowy email lub hasło."}, status=401)
+                return JsonResponse({"error": "Tylko administratorzy mogą używać tego endpointu."}, status=403)
 
+        except User.DoesNotExist:
+            return JsonResponse({"error": "Użytkownik o podanym adresie email nie istnieje."}, status=404)
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."}, status=400)
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."},
+                                status=400)
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
