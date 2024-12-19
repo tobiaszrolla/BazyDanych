@@ -151,20 +151,35 @@ def zapisz_na_zajęcia(request, zajęcia_id):
             zajęcia.save()
 
             # Aktualizacja godzin lekcji kursanta
-            if(zajęcia.samochód):
-                if(kursant.posiadane_lekcje_praktyczne <= 0):
+            if zajęcia.samochód:
+                if kursant.posiadane_lekcje_praktyczne <= 0:
                     return JsonResponse({"error": "Nie posiadasz lekcji teoretycznych."}, status=400)
                 kursant.godziny_lekcji_praktycznych += 1  # Dodanie 1 godziny
                 kursant.dostempne_posiadane_lekcje_praktyczne -= 1
                 kursant.save()
-            if (zajęcia.sala):
-                if (kursant.posiadane_lekcje_teoretyczne <= 0):
+            if zajęcia.sala:
+                if kursant.posiadane_lekcje_teoretyczne <= 0:
                     return JsonResponse({"error": "Nie posiadasz lekcji praktycznych."}, status=400)
                 kursant.godziny_lekcji_teoretycznych += 1  # Dodanie 1 godziny
                 kursant.dostempne_posiadane_lekcje_teoretyczne -= 1
                 kursant.save()
 
-        return JsonResponse({"message": "Zostałeś zapisany na zajęcia!"}, status=201)
+            # Wysłanie e-maila potwierdzającego zapisanie na zajęcia
+            subject = "Potwierdzenie zapisu na zajęcia"
+            message = (
+                f"Cześć {kursant.username},\n\n"
+                f"Zostałeś zapisany na zajęcia {zajęcia} w dniu {zajęcia.data.strftime('%d.%m.%Y')} o godzinie {zajęcia.godzina_rozpoczęcia}.\n\n"
+                "Dziękujemy za zapisanie się na zajęcia w naszej szkole jazdy!"
+            )
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [kursant.email],
+                fail_silently=False,
+            )
+
+        return JsonResponse({"message": "Zostałeś zapisany na zajęcia! E-mail potwierdzający został wysłany."}, status=201)
 
     except Zajęcia.DoesNotExist:
         return JsonResponse({"error": "Nie znaleziono zajęć."}, status=404)
@@ -228,50 +243,6 @@ def dostępne_zajęcia(request):
 
     # Jeśli metoda żądania nie jest GET
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj GET."}, status=405)
-
-
-@login_required
-@require_POST
-def email_na_zajęcia(request, zajęcia_id):
-    try:
-        zajęcia = Zajęcia.objects.get(id=zajęcia_id)
-    except Zajęcia.DoesNotExist:
-        return JsonResponse({"error": "Nie znaleziono zajęć."}, status=404)
-
-    # Sprawdzenie, czy użytkownik już jest zapisany
-    if KursanciNaZajęciach.objects.filter(użytkownik=request.user, zajęcia=zajęcia).exists():
-        return JsonResponse({"error": "Już jesteś zapisany na te zajęcia."}, status=400)
-
-    # Zapisanie użytkownika na zajęcia
-    KursanciNaZajęciach.objects.create(użytkownik=request.user, zajęcia=zajęcia)
-
-    # Przygotowanie danych do e-maila
-    subject = "Potwierdzenie zapisu na zajęcia"
-    message = (
-        f"Cześć {request.user.imię},\n\n"
-        f"Zostałeś zapisany na zajęcia:\n\n"
-        f"Data: {zajęcia.data.strftime('%d.%m.%Y')}\n"
-        f"Godzina: {zajęcia.godzina_rozpoczęcia.strftime('%H:%M')} - {zajęcia.godzina_zakończenia.strftime('%H:%M')}\n"
-    )
-    if zajęcia.sala:
-        message += f"Sala: {zajęcia.sala.nazwa}\n"
-    if zajęcia.samochód:
-        message += f"Samochód: {zajęcia.samochód.model} ({zajęcia.samochód.registration_number})\n"
-    if zajęcia.instruktor:
-        message += f"Instruktor: {zajęcia.instruktor.imię} {zajęcia.instruktor.nazwisko}\n"
-
-    message += "\nDziękujemy za zapisanie się i do zobaczenia na zajęciach!\n"
-
-    from_email = settings.DEFAULT_FROM_EMAIL
-    recipient_list = [request.user.email]
-
-    # Wysyłanie e-maila
-    try:
-        send_mail(subject, message, from_email, recipient_list)
-        return JsonResponse({"message": "Zostałeś zapisany na zajęcia! E-mail potwierdzający został wysłany."},
-                            status=201)
-    except Exception as e:
-        return JsonResponse({"error": f"Nie udało się wysłać e-maila: {str(e)}"}, status=500)
 
 @login_required
 @require_POST
