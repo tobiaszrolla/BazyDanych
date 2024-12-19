@@ -23,5 +23,6 @@ urlpatterns = [
     path('kalendarz/', zajencia_view.kalendarz, name='kalendarz'),
     path('transakcja/<int:zajęcia_id>/<int:kursant_id>/', transakcje_views.transakcja, name='transakcja'),
     path('zakoncz_zajecia/<int:zajęcia_id>/<int:kursant_id>/', transakcje_views.zakoncz_zajecia, name='zakoncz_zajecia'),
+    path('zajęcia/<int:zajęcia_id>/zapisz/', zajencia_view.email_na_zajęcia, name='email_na_zajęcia'),
     path('', other_view.home, name='home'),
 ]

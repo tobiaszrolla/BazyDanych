@@ -1,3 +1,5 @@
+import traceback
+
 from django.db.models import Count
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -224,26 +226,28 @@ def modify_user(request, email):
 def reset_password_request(request):
     if request.method == "POST":
         try:
+            # Parsowanie danych z żądania
             data = json.loads(request.body)
             email = data.get("email")
 
             if not email:
                 return JsonResponse({"error": "Podaj adres e-mail."}, status=400)
 
-            user = User.objects.filter(email=email).first()
+            # Szukanie użytkownika w bazie danych
+            user = Użytkownik.objects.filter(email=email).first()
             if not user:
                 return JsonResponse({"error": "Nie znaleziono użytkownika z podanym adresem e-mail."}, status=404)
 
-            # Generowanie nowego losowego hasła
+            # Generowanie nowego hasła
             new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
 
-            # Ustawienie nowego hasła dla użytkownika
+            # Ustawienie nowego hasła i zapis użytkownika
             user.set_password(new_password)
             user.save()
 
-            # Wysłanie e-maila z nowym hasłem (wyświetlanego w konsoli lokalnej)
+            # Wysłanie e-maila z nowym hasłem
             subject = "Twoje nowe hasło"
-            message = f"Twoje nowe hasło to: {new_password}\nZalecamy, aby po zalogowaniu zmienić hasło na swoje własne."
+            message = f"Twoje nowe hasło to: {new_password}\nZalecamy, aby po zalogowaniu zmienić hasło na własne."
             from_email = settings.DEFAULT_FROM_EMAIL
             send_mail(subject, message, from_email, [user.email])
 
@@ -252,9 +256,11 @@ def reset_password_request(request):
         except json.JSONDecodeError:
             return JsonResponse({"error": "Nieprawidłowe dane wejściowe."}, status=400)
         except Exception as e:
+            traceback.print_exc()  # Logowanie szczegółów błędu w konsoli
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
 
 @login_required
 def dodaj_opinie(request):
