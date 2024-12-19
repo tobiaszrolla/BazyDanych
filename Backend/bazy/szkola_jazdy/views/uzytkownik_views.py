@@ -34,7 +34,7 @@ from django.contrib.auth import logout, authenticate, login as django_login #kon
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
-from datetime import datetime
+from datetime import datetime, timedelta
 import random
 import string
 def is_admin(user):
@@ -133,7 +133,17 @@ def zapisz_na_kurs(request):
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
 
 
+def send_verification_code(user):
+    code = f"{random.randint(100000, 999999)}"  # Losowy 6-cyfrowy kod
+    user.verification_code = code
+    user.save()
 
+    send_mail(
+        subject="Kod weryfikacyjny logowania",
+        message=f"Twój kod weryfikacyjny to: {code}",
+        from_email="noreply@domain.com",
+        recipient_list=[user.email],
+    )
 
 @csrf_exempt
 def login(request):
@@ -142,29 +152,41 @@ def login(request):
             data = json.loads(request.body)
             email = data.get("email")
             password = data.get("password")
+            code = data.get("code")  # Kod weryfikacyjny
 
-            #Walidacja czy hasło email zostały przesłane
             if not email or not password:
                 return JsonResponse({"error": "Email i hasło są wymagane."}, status=400)
 
-            # Uwierzytelnienie użytkownika
-            user = authenticate(request, username=email, password=password)  # Sprawdź poprawność danych
+            user = authenticate(request, username=email, password=password)
 
             if user is not None:
-                django_login(request,user)
-                # Zwrócenie odpowiedzi w przypadku poprawnej pary
-                return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
+                if not user.is_superuser:
+                    django_login(request, user)
+                    return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
+
+                # Administrator - etap weryfikacji kodu
+                if not code:  # Jeśli kod nie został podany
+                    send_verification_code(user)
+                    return JsonResponse({"message": "Kod weryfikacyjny został wysłany na e-mail."}, status=202)
+
+                if code == user.verification_code and user.verification_code_expiry > datetime.now():
+                    user.verification_code = None  # Reset kodu
+                    user.verification_code_expiry = None
+                    user.save()
+                    django_login(request, user)
+                    return JsonResponse({"message": "Administrator zalogowany pomyślnie."}, status=200)
+                else:
+                    return JsonResponse({"error": "Nieprawidłowy kod weryfikacyjny lub kod wygasł."}, status=401)
             else:
-                # Odpowiedź w przypadku błędnych danych logowania
                 return JsonResponse({"error": "Nieprawidłowy email lub hasło."}, status=401)
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."}, status=400)
-
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+
 
 @csrf_exempt
 def logout(request):
