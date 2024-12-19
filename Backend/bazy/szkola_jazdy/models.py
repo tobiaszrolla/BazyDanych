@@ -69,6 +69,7 @@ class Zajęcia(models.Model):
     kategoria = models.CharField(max_length=3, choices=KATEGORIA)
     godzina_rozpoczęcia = models.TimeField()
     godzina_zakończenia = models.TimeField()
+    dostempne_miejsca = models.IntegerField(default=0)
     data = models.DateField(null=True, blank=True)
 
     def __str__(self):

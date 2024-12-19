@@ -21,6 +21,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime
 import logging
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ def add_zajęcia(request):
         numer_rejestracyjny = data.get("numer_rejestracyjny")
         godzina_rozpoczęcia = data.get("godzina_rozpoczęcia")
         godzina_zakończenia = data.get("godzina_zakończenia")
+        kategoria = data.get("kategoria")
         data = data.get("data")
 
         if not nazwa_sali and not numer_rejestracyjny:
@@ -65,6 +67,7 @@ def add_zajęcia(request):
                 str_to_time(godzina_zakończenia) <= zajęcia.godzina_rozpoczęcia):
                     return JsonResponse({"error": "Sala jest już zajęta"}, status=400)
             samochód = None
+            dostempne_miejsca = sala.capacity
         elif numer_rejestracyjny and not nazwa_sali:
             samochód = Samochód.objects.filter(registration_number=numer_rejestracyjny).first()
             if not samochód:
@@ -78,6 +81,7 @@ def add_zajęcia(request):
                 str_to_time(godzina_zakończenia) <= zajęcia.godzina_rozpoczęcia):
                         return JsonResponse({"error": "Samochód jest już zajęty"}, status=400)
             sala = None
+            dostempne_miejsca = 1
 
         # Pobierz instruktora
         instruktor = request.user
@@ -89,7 +93,9 @@ def add_zajęcia(request):
             instruktor=instruktor,
             godzina_rozpoczęcia=godzina_rozpoczęcia,
             godzina_zakończenia=godzina_zakończenia,
-            data = data
+            kategoria=kategoria,
+            data = data,
+            dostempne_miejsca = dostempne_miejsca
         )
 
         # Zwróć odpowiedź
@@ -98,9 +104,7 @@ def add_zajęcia(request):
         }, status=201)
 
     return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
-
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
-
+"""
 @login_required
 @require_POST
 def zapisz_na_zajęcia(request, zajęcia_id):
@@ -117,6 +121,57 @@ def zapisz_na_zajęcia(request, zajęcia_id):
     # Zapisanie kursanta na zajęcia
     KursanciNaZajęciach.objects.create(użytkownik=request.user, zajęcia=zajęcia)
     return JsonResponse({"message": "Zostałeś zapisany na zajęcia!"}, status=201)
+"""
+
+@login_required
+@require_POST
+def zapisz_na_zajęcia(request, zajęcia_id):
+    try:
+        # Pobranie zajęć i sprawdzenie ich istnienia
+        zajęcia = Zajęcia.objects.get(id=zajęcia_id)
+
+        # Pobranie aktualnego użytkownika
+        kursant = request.user
+
+        # Sprawdzenie, czy kursant już jest zapisany na te zajęcia
+        if KursanciNaZajęciach.objects.filter(użytkownik=kursant, zajęcia=zajęcia).exists():
+            return JsonResponse({"error": "Już jesteś zapisany na te zajęcia."}, status=400)
+
+        # Sprawdzenie dostępności miejsc
+        if zajęcia.dostępne_miejsca <= 0:
+            return JsonResponse({"error": "Brak dostępnych miejsc na te zajęcia."}, status=400)
+
+        # Rozpoczęcie transakcji
+        with transaction.atomic():
+            # Zapisanie kursanta na zajęcia
+            KursanciNaZajęciach.objects.create(użytkownik=kursant, zajęcia=zajęcia)
+
+            # Zmniejszenie liczby dostępnych miejsc
+            zajęcia.dostępne_miejsca -= 1
+            zajęcia.save()
+
+            # Aktualizacja godzin lekcji kursanta
+            if(zajęcia.samochód):
+                if(kursant.posiadane_lekcje_praktyczne <= 0):
+                    return JsonResponse({"error": "Nie posiadasz lekcji teoretycznych."}, status=400)
+                kursant.godziny_lekcji_praktycznych += 1  # Dodanie 1 godziny
+                kursant.dostempne_posiadane_lekcje_praktyczne -= 1
+                kursant.save()
+            if (zajęcia.sala):
+                if (kursant.posiadane_lekcje_teoretyczne <= 0):
+                    return JsonResponse({"error": "Nie posiadasz lekcji praktycznych."}, status=400)
+                kursant.godziny_lekcji_teoretycznych += 1  # Dodanie 1 godziny
+                kursant.dostempne_posiadane_lekcje_teoretyczne -= 1
+                kursant.save()
+
+        return JsonResponse({"message": "Zostałeś zapisany na zajęcia!"}, status=201)
+
+    except Zajęcia.DoesNotExist:
+        return JsonResponse({"error": "Nie znaleziono zajęć."}, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=400)
+
 
 @login_required
 def delete_zajęcia(request, numer_zajęć):

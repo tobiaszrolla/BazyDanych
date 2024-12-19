@@ -62,11 +62,11 @@ def add_room(request):
 
 @csrf_exempt
 @user_passes_test(is_admin)
-def delete_room(request, room_name):
+def delete_room(request, nazwa):
     if request.method == "DELETE":
         try:
             # Pobranie sali o danej nazwie
-            room = Sala.objects.get(nazwa=room_name)
+            room = Sala.objects.get(nazwa=nazwa)
             room.delete()
             return JsonResponse({"message": "Sala została usunięta pomyślnie!"}, status=200)
         except Sala.DoesNotExist:

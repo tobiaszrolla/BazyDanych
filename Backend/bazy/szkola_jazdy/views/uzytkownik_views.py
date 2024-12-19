@@ -59,7 +59,9 @@ def register(request):
             data_urodzenia = data.get("data_urodzenia", None)
             typ_użytkownika = data.get("typ_użytkownika")
             password = data.get("password")
-
+            #Sprawdza liczbę kursantów
+            if Użytkownik.objects.filter(typ_użytkownika='kursant').count() >= 30:
+                return JsonResponse({"error": "Przepraszamy nie mamy wolnych miejsc."}, status=400)
             # Walidacja: Sprawdzanie, czy wymagane dane są dostępne
             if not email or not imię or not nazwisko or not typ_użytkownika or not password:
                 return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
