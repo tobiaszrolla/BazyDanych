@@ -38,3 +38,7 @@ def home(request):
     return render(request, 'szkola_jazdy/home.html')
 
 
+def info(request):
+    return render(request, 'szkola_jazdy/info.html')
+
+

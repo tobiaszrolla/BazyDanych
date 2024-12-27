@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informacje o szkole jazdy</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Informacje o szkole jazdy</h1>
+        <nav>
+            <a href="{% url 'home' %}">Strona główna</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Nasze kursy</h2>
+            <p>Oferujemy kursy na kategorie B, B1 i C. Nasze kursy teoretyczne i praktyczne są prowadzone przez doświadczonych instruktorów.</p>
+        </section>
+        <section>
+            <h2>Samochody</h2>
+            <p>Używamy nowoczesnych samochodów, które są regularnie serwisowane i dostosowane do nauki jazdy.</p>
+        </section>
+    </main>
+    <script src="{% static 'szkola_jazdy/js/info.js' %}"></script>
+</body>
+</html>

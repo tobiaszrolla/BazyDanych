@@ -1,11 +1,39 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strona główna</title>
+    <title>Szkoła Jazdy - Strona Główna</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
 </head>
 <body>
-    <h1>Witaj na stronie głównej!</h1>
+    <header>
+        <div class="navbar">
+            <h1>Szkoła Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'login' %}">Logowanie</a></li>
+                    <li><a href="{% url 'register' %}">Rejestracja</a></li>
+                    <li><a href="{% url 'info' %}">Strona Infromacyjna</a> </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="hero">
+            <h2>Ucz się z najlepszymi instruktorami!</h2>
+            <p>Zapisz się na kurs prawa jazdy już dziś.</p>
+            <button onclick="showAvailableCourses()">Zobacz dostępne kursy</button>
+        </section>
+        <section id="courses" class="hidden">
+            <h3>Dostępne Kursy</h3>
+            <ul id="courseList"></ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 Szkoła Jazdy. Wszelkie prawa zastrzeżone.</p>
+    </footer>
+    <script src="{% static 'szkola_jazdy/js/home.js' %}"></script>
 </body>
 </html>
