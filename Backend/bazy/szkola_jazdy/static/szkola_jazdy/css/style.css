@@ -5,34 +5,19 @@ body {
     padding: 0;
     background-color: #f4f4f4;
     color: #333;
+    display: flex; /* Użycie flexbox do centrowania */
+    justify-content: center; /* Wycentrowanie w poziomie */
+    align-items: center; /* Wycentrowanie w pionie */
+    height: 100vh; /* Wysokość widoku przeglądarki */
 }
 
 header {
     background: #007bff;
     color: white;
     padding: 10px 20px;
-}
-
-.navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.navbar ul {
-    list-style: none;
-    display: flex;
-    margin: 0;
-    padding: 0;
-}
-
-.navbar li {
-    margin-left: 20px;
-}
-
-.navbar a {
-    color: white;
-    text-decoration: none;
+    width: 100%; /* Header na pełną szerokość */
+    position: fixed; /* Unieruchomienie headera */
+    top: 0;
 }
 
 .hero {
@@ -40,35 +25,38 @@ header {
     padding: 50px 20px;
     background-color: #007bff;
     color: white;
+    margin-top: 50px; /* Odsunięcie hero od headera */
 }
 
-.hero h2 {
-    margin-bottom: 10px;
+main {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px; /* Maksymalna szerokość formularza */
+    box-sizing: border-box; /* Uwzględnienie paddingu w szerokości */
+}
+form p {
+    margin: 10px 0 5px;
+}
+
+input, select, button {
+    width: 100%; /* Pola na pełną szerokość */
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
 }
 
 button {
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 10px 20px;
-    font-size: 16px;
     cursor: pointer;
-    border-radius: 5px;
 }
 
 button:hover {
     background-color: #218838;
-}
-
-#courses {
-    margin: 20px auto;
-    padding: 20px;
-    max-width: 600px;
-    background: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-}
-
-.hidden {
-    display: none;
 }

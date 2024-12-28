@@ -94,7 +94,7 @@ def register(request):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest POST
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+    return render(request, "szkola_jazdy/register.html")
 
 @csrf_exempt
 def zapisz_na_kurs(request):
@@ -157,24 +157,28 @@ def login(request):
             if not email or not password:
                 return JsonResponse({"error": "Email i hasło są wymagane."}, status=400)
 
+            try:
+                # Sprawdzenie, czy użytkownik istnieje w bazie danych
+                user = User.objects.get(username=email)
+            except User.DoesNotExist:
+                return JsonResponse({"error": "Użytkownik o podanym emailu nie istnieje."}, status=404)
+
+            # Sprawdzenie, czy hasło jest poprawne
             user = authenticate(request, username=email, password=password)
+            if user is None:
+                return JsonResponse({"error": "Nieprawidłowe hasło."}, status=401)
 
-            if user is not None:
-                if user.is_superuser:
-                    # Administrator - jeśli kod nie jest podany, wyślij kod weryfikacyjny
-                    if not user.verification_code:
-                        send_verification_code(user)
-                        return JsonResponse({"message": "Kod weryfikacyjny został wysłany na e-mail."}, status=202)
+            # Logowanie użytkownika
+            if user.is_superuser:
+                # Dodatkowa obsługa logowania administratora
+                if not user.verification_code:
+                    send_verification_code(user)
+                    return JsonResponse({"message": "Kod weryfikacyjny został wysłany na e-mail."}, status=202)
 
-                    # Jeśli użytkownik podał kod, sprawdź go w innym widoku (weryfikacja)
-                    return JsonResponse({"message": "Wprowadź kod weryfikacyjny, aby zakończyć logowanie."}, status=200)
+                return JsonResponse({"message": "Wprowadź kod weryfikacyjny, aby zakończyć logowanie."}, status=200)
 
-                # Logowanie użytkowników (nieadministratorów)
-                django_login(request, user)
-                return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
-
-            else:
-                return JsonResponse({"error": "Nieprawidłowy email lub hasło."}, status=401)
+            django_login(request, user)
+            return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."},
@@ -182,7 +186,7 @@ def login(request):
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+    return render(request, "szkola_jazdy/login.html")
 
 
 @csrf_exempt

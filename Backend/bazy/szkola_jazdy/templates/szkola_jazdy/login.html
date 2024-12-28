@@ -1,17 +1,101 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Logowanie</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
 </head>
 <body>
-    <h2>Logowanie</h2>
-
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}  <!-- Renderowanie formularza w formie paragrafów -->
-        <button type="submit">Zaloguj</button>
+<header>
+    <h1>Logowanie</h1>
+</header>
+<main>
+    <form id="loginForm">
+        <p><label for="email">Email:</label></p>
+        <input type="email" id="email" name="email" required>
+        <p><label for="password">Hasło:</label></p>
+        <input type="password" id="password" name="password" required>
+        <p><button type="submit">Zaloguj</button></p>
     </form>
+     <nav>
+            <a href="{% url 'home' %}">Strona główna</a>
+        </nav>
+</main>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent the form from submitting the traditional way
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        // Check if email and password are provided
+        if (!email || !password) {
+            alert("Email i hasło są wymagane.");
+            return;
+        }
+
+        const data = {
+            email: email,
+            password: password
+        };
+
+        // Send login request to the Django backend
+        fetch("/login/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error); // Display error message if any
+            } else if (data.message) {
+                alert(data.message); // Display success or informational message
+                if (data.message.includes("Kod weryfikacyjny")) {
+                    // Handle verification code flow
+                    let verificationCode = prompt("Wprowadź kod weryfikacyjny:");
+                    if (verificationCode) {
+                        verifyCode(verificationCode);
+                    }
+                } else {
+                    window.location.href = "/dashboard/"; // Redirect to the dashboard or home page
+                }
+            }
+        })
+        .catch(error => {
+            alert("Wystąpił błąd: " + error);
+        });
+    });
+
+    function verifyCode(verificationCode) {
+        const data = {
+            code: verificationCode
+        };
+
+        fetch("/verify-code/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error); // Display error message if any
+            } else {
+                alert("Kod weryfikacyjny został poprawnie zweryfikowany.");
+                window.location.href = "/dashboard/"; // Redirect to the dashboard or home page
+            }
+        })
+        .catch(error => {
+            alert("Wystąpił błąd podczas weryfikacji: " + error);
+        });
+    }
+</script>
 </body>
 </html>

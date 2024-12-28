@@ -1,13 +1,39 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rejestracja</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+    <title>Formularz rejestracji</title>
 </head>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}  <!-- Renderowanie formularza w formie paragrafów -->
-        <button type="submit">Zarejestruj</button>
-    </form>
+<body>
+    <header>
+        <h1>Rejestracja</h1>
+    </header>
+    <main>
+        <h2>Rejestracja</h2>
+        <form id="registerForm">
+            {% csrf_token %}
+            <p>Email:</p>
+            <input type="email" id="email" name="email" required>
+            <p>Numer telefonu:</p>
+            <input type="tel" id="nrTelefonu" name="nrTelefonu" required>
+            <p>Imię:</p>
+            <input type="text" id="imię" name="imię" required>
+            <p>Nazwisko:</p>
+            <input type="text" id="nazwisko" name="nazwisko" required>
+            <p>Data urodzenia:</p>
+            <input type="date" id="data_urodzenia" name="data_urodzenia" required>
+            </select>
+            <p>Hasło:</p>
+            <input type="password" id="password" name="password" required>
+            <p><button type="submit" id="registerButton">Zarejestruj</button></p>
+        </form>
+        <div id="message"></div>
+         <nav>
+            <a href="{% url 'home' %}">Strona główna</a>
+        </nav>
+    </main>
+</body>
 </html>
