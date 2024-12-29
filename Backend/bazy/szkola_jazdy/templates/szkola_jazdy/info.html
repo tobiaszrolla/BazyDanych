@@ -1,5 +1,4 @@
 {% load static %}
-<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -10,9 +9,6 @@
 <body>
     <header>
         <h1>Informacje o szkole jazdy</h1>
-        <nav>
-            <a href="{% url 'home' %}">Strona główna</a>
-        </nav>
     </header>
     <main>
         <section>
@@ -23,6 +19,11 @@
             <h2>Samochody</h2>
             <p>Używamy nowoczesnych samochodów, które są regularnie serwisowane i dostosowane do nauki jazdy.</p>
         </section>
+        <nav>
+            <a href="{% url 'home' %}">
+                <button type="button" id="idk">Strona główna</button>
+            </a>
+        </nav>
     </main>
     <script src="{% static 'szkola_jazdy/js/info.js' %}"></script>
 </body>

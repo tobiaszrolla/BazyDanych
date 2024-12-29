@@ -1,5 +1,4 @@
 {% load static %}
-<!DOCTYPE html>
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
@@ -32,7 +31,9 @@
         </form>
         <div id="message"></div>
          <nav>
-            <a href="{% url 'home' %}">Strona główna</a>
+            <a href="{% url 'home' %}">
+                <button type="button" id="idk">Strona główna</button>
+            </a>
         </nav>
     </main>
 </body>

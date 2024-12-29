@@ -1,62 +1,123 @@
-/* style.css */
+/* Ogólne style */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f4f4;
     color: #333;
-    display: flex; /* Użycie flexbox do centrowania */
-    justify-content: center; /* Wycentrowanie w poziomie */
-    align-items: center; /* Wycentrowanie w pionie */
-    height: 100vh; /* Wysokość widoku przeglądarki */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Wysokość 100% widoku */
+    box-sizing: border-box;
 }
 
+/* Header */
 header {
     background: #007bff;
     color: white;
     padding: 10px 20px;
-    width: 100%; /* Header na pełną szerokość */
-    position: fixed; /* Unieruchomienie headera */
+    position: fixed; /* Header zawsze widoczny */
     top: 0;
+    width: 100%; /* Na pełną szerokość */
+    z-index: 1000; /* Na wierzchu */
 }
 
+header .navbar {
+    display: flex;
+    justify-content: space-between; /* Rozdziel nagłówek na dwie strony */
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+header nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 10px; /* Odstępy między elementami */
+}
+
+header nav ul li {
+    display: inline;
+}
+
+header nav ul li a {
+    text-decoration: none;
+    color: white;
+    background-color: #28a745; /* Zielone przyciski */
+    padding: 8px 15px;
+    border-radius: 5px; /* Zaokrąglone rogi */
+    transition: background-color 0.3s ease;
+}
+
+header nav ul li a:hover {
+    background-color: #218838; /* Ciemniejszy zielony po najechaniu */
+}
+
+/* Hero */
 .hero {
     text-align: center;
     padding: 50px 20px;
     background-color: #007bff;
     color: white;
-    margin-top: 50px; /* Odsunięcie hero od headera */
+    margin-top: 60px; /* Odsunięcie hero od headera */
 }
 
+.hero button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.3s ease;
+}
+
+.hero button:hover {
+    background-color: #218838;
+}
+
+/* Main content */
 main {
     background-color: white;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 100px auto 0; /* Odsunięcie od headera */
     width: 100%;
-    max-width: 400px; /* Maksymalna szerokość formularza */
-    box-sizing: border-box; /* Uwzględnienie paddingu w szerokości */
-}
-form p {
-    margin: 10px 0 5px;
+    max-width: 400px; /* Maksymalna szerokość */
+    box-sizing: border-box;
 }
 
-input, select, button {
-    width: 100%; /* Pola na pełną szerokość */
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1em;
+.hidden {
+    display: none;
 }
 
-button {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    cursor: pointer;
+/* Stopka */
+footer {
+    position: fixed; /* Przyklejona do okna */
+    bottom: 0; /* Do dołu strony */
+    left: 0; /* W lewym dolnym rogu */
+    width: auto; /* Dopasowanie do zawartości */
+    background-color: transparent; /* Brak tła */
+    color: #333;
+    padding: 5px 10px;
+    font-size: 0.9em; /* Nieco mniejsza czcionka */
+    z-index: 1000;
 }
 
-button:hover {
-    background-color: #218838;
+/* Responsywność */
+@media (max-width: 768px) {
+    header nav ul {
+        flex-direction: column;
+        gap: 5px; /* Mniejsze odstępy na małych ekranach */
+    }
+
+    main {
+        margin-top: 80px; /* Więcej miejsca na małych ekranach */
+    }
 }
