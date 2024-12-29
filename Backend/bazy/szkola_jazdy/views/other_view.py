@@ -41,4 +41,5 @@ def home(request):
 def info(request):
     return render(request, 'szkola_jazdy/info.html')
 
-
+def loggedin(request):
+    return render(request, 'szkola_jazdy/loggedin.html')

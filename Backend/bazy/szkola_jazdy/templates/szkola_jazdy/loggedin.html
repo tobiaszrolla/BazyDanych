@@ -1,0 +1,61 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+    <title>Strona główna</title>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="navbar">
+            <h1>Witaj w Szkole Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" id="logoutButton">Wyloguj</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main>
+        <!-- Hero Section (powitanie użytkownika) -->
+        <div class="hero">
+            <h2 id="greetingMessage"></h2>  <!-- Tutaj pojawi się dynamiczne powitanie -->
+            <p>Co chcesz zrobić dzisiaj?</p>
+        </div>
+
+        <!-- Opcje dla użytkownika -->
+        <section id="content">
+            <nav>
+                <ul>
+                    <li><a href="#" id="ZKurs">Zapisz się na kurs!</a></li>
+                </ul>
+            </nav>
+            <nav>
+                <ul>
+                    <li><a href="#" id="Kalendarz">Zobacz twój kalendarz zajęć</a></li>
+                </ul>
+            </nav>
+            <nav>
+                <ul>
+                    <li><a href="#" id="Opinie">Przeczytaj opinie o naszych instruktorach!</a></li>
+                </ul>
+            </nav>
+            <nav>
+                <ul>
+                    <li><a href="#" id="ZZajecia">Zapisz się na zajęcia!</a></li>
+                </ul>
+            </nav>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Szkoła Jazdy</p>
+    </footer>
+
+    <script src="{% static 'szkola_jazdy/js/loggedin.js' %}"></script>
+</body>
+</html>
