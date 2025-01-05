@@ -33,5 +33,6 @@ urlpatterns = [
     path('opinie/', uzytkownik_views.dodaj_opinie, name='opinie'),
     path('zapiszzajecia/<int:zajęcia_id>/', zajencia_view.zapisz_na_zajęcia, name='zapiszzajecia'),
     path('dostępne_zajęcia/', zajencia_view.dostępne_zajęcia, name='dostępne_zajęcia'),
-    path('Hinstruktor/', other_view.Hinstruktor, name='Hintrukotor')
+    path('Hinstruktor/', other_view.Hinstruktor, name='Hintrukotor'),
+    path('Hadmin/', other_view.Hadmin, name='Hadmin')
 ]

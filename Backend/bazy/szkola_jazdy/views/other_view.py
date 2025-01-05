@@ -46,3 +46,6 @@ def loggedin(request):
 
 def Hinstruktor(request):
     return render(request, 'szkola_jazdy/Hinstruktor.html')
+
+def Hadmin(request):
+    return render(request, 'szkola_jazdy/Hadmin.html')
