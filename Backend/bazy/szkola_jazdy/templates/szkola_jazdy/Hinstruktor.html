@@ -1,0 +1,45 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strona Główna Instruktora</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+    <script src="{% static 'szkola_jazdy/js/Hinstruktor.js' %}"></script>
+</head>
+<body>
+
+    <!-- Nagłówek -->
+    <header>
+        <div class="navbar">
+            <h1>Strona Główna Instruktora</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" id="logoutButton">Wyloguj</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Sekcja Hero -->
+    <section class="hero">
+        <h2>Witaj, Instruktorze!</h2>
+        <p>Przejdź do podstrony zarządzania zajęciami, aby rozpocząć.</p>
+        <button onclick="navigateToZajecia()">Zarządzaj Zajęciami</button>
+    </section>
+
+    <!-- Główna zawartość -->
+    <main>
+        <h2>Twoje zadania:</h2>
+        <ul>
+            <li>Przygotowanie materiałów do zajęć</li>
+            <li>Komunikacja z kursantami</li>
+            <li>Zarządzanie harmonogramem zajęć</li>
+        </ul>
+    </main>
+    <footer>
+        <p>&copy; 2024 Szkoła Jazdy</p>
+    </footer>
+
+</body>
+</html>

@@ -32,5 +32,6 @@ urlpatterns = [
     path('kalendarz/', zajencia_view.kalendarz, name='kalendarz'),
     path('opinie/', uzytkownik_views.dodaj_opinie, name='opinie'),
     path('zapiszzajecia/<int:zajęcia_id>/', zajencia_view.zapisz_na_zajęcia, name='zapiszzajecia'),
-    path('dostępne_zajęcia/', zajencia_view.dostępne_zajęcia, name='dostępne_zajęcia')
+    path('dostępne_zajęcia/', zajencia_view.dostępne_zajęcia, name='dostępne_zajęcia'),
+    path('Hinstruktor/', other_view.Hinstruktor, name='Hintrukotor')
 ]

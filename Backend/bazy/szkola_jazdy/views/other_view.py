@@ -43,3 +43,6 @@ def info(request):
 
 def loggedin(request):
     return render(request, 'szkola_jazdy/loggedin.html')
+
+def Hinstruktor(request):
+    return render(request, 'szkola_jazdy/Hinstruktor.html')
