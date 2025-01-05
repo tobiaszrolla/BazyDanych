@@ -27,5 +27,6 @@ urlpatterns = [
     path('verify_code/', uzytkownik_views.verify_code, name='verify_code'),
     path('', other_view.home, name='home'),
     path('info/', other_view.info, name='info'),
-    path('loggedin/', other_view.loggedin, name='loggedin')
+    path('loggedin/', other_view.loggedin, name='loggedin'),
+    path('zapiskurs/', uzytkownik_views.zapisz_na_kurs, name='zapiskurs')
 ]

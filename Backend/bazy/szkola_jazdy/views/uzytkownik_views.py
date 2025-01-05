@@ -131,7 +131,7 @@ def zapisz_na_kurs(request):
             traceback.print_exc()
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+    return render(request, "szkola_jazdy/Zapiskurs.html")
 
 
 def send_verification_code(user):
