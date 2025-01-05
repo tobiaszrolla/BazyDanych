@@ -106,8 +106,8 @@ def add_zajęcia(request):
     return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
 
 
-@login_required
-@require_POST
+#@login_required
+#@require_POST
 def zapisz_na_zajęcia(request, zajęcia_id):
     try:
         # Pobranie zajęć i sprawdzenie ich istnienia
@@ -162,7 +162,7 @@ def zapisz_na_zajęcia(request, zajęcia_id):
         return JsonResponse({"error": "Nie znaleziono zajęć."}, status=404)
 
     except Exception as e:
-        return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=400)
+        return render(request, "szkola_jazdy/zapisz_na_zajecia.html")
 
 
 @login_required
@@ -187,8 +187,8 @@ def delete_zajęcia(request, zajęcia_id):
 
     return JsonResponse({"error": "Nieprawidłowa metoda HTTP."}, status=405)
 
-@csrf_exempt
-@login_required
+#@csrf_exempt
+#@login_required
 def dostępne_zajęcia(request):
     """
     Zwraca listę dostępnych zajęć z informacją o liczbie wolnych miejsc.
@@ -225,7 +225,7 @@ def dostępne_zajęcia(request):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest GET
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj GET."}, status=405)
+    return render(request, "szkola_jazdy/zapisz_na_zajecia.html")
 
 @login_required
 @require_POST
@@ -259,9 +259,9 @@ def kalendarz(request):
         return JsonResponse({"zajęcia": zajęcia_list}, status=200)
     except Exception as e:
         logger.error(f"Error in kalendarz view: {str(e)}")
-        return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+        return render(request, "szkola_jazdy/kalendarz.html")
 
-@login_required
+
 @require_POST
 def zakoncz_zajecia(request, zajęcia_id, kursant_id):
     try:

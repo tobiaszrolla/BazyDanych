@@ -1,0 +1,30 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodaj opinię</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Dodaj swoją opinię</h1>
+    </header>
+    <main>
+        <form id="opiniaForm">
+            <label for="opinia">Twoja opinia:</label>
+            <textarea id="opinia" name="opinia" rows="5" placeholder="Wpisz swoją opinię tutaj..."></textarea>
+            <button type="submit">Wyślij</button>
+        </form>
+        <div id="responseMessage" style="margin-top: 20px; display: none;"></div>
+
+        <section id="opinieSection" style="margin-top: 40px;">
+            <h2>Opinie innych użytkowników:</h2>
+            <ul id="opinieList">
+                <!-- Opinie będą tutaj wstawiane dynamicznie -->
+            </ul>
+        </section>
+    </main>
+    <script src="opinie.js"></script>
+</body>
+</html>

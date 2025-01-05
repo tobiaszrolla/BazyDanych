@@ -334,4 +334,4 @@ def dodaj_opinie(request):
             return JsonResponse({'status': 'success', 'message': 'Opinia została zapisana.'})
         else:
             return JsonResponse({'status': 'error', 'errors': {'opinia': ['To pole jest wymagane.']}}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Nieprawidłowa metoda żądania.'}, status=405)
+    return render(request, "szkola_jazdy/opinie.html")

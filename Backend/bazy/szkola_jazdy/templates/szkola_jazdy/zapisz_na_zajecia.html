@@ -1,0 +1,43 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+    <title>Zapisy na zajęcia</title>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="navbar">
+            <h1>Witaj w Szkole Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="#" id="logoutButton">Wyloguj</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main>
+        <h2>Zapisz się na zajęcia</h2>
+
+        <!-- Lista dostępnych zajęć -->
+        <div id="availableClasses">
+            <!-- Wartości będą wypełniane dynamicznie przez JS -->
+        </div>
+    </main>
+
+    <!-- Potwierdzenie zapisu -->
+    <div id="confirmationMessage" style="display: none;">
+        <p id="confirmationText"></p>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Szkoła Jazdy</p>
+    </footer>
+
+    <script src="{% static 'szkola_jazdy/js/zapisz_na_zajecia.js' %}"></script>
+</body>
+</html>

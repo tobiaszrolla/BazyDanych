@@ -28,5 +28,9 @@ urlpatterns = [
     path('', other_view.home, name='home'),
     path('info/', other_view.info, name='info'),
     path('loggedin/', other_view.loggedin, name='loggedin'),
-    path('zapiskurs/', uzytkownik_views.zapisz_na_kurs, name='zapiskurs')
+    path('zapiskurs/', uzytkownik_views.zapisz_na_kurs, name='zapiskurs'),
+    path('kalendarz/', zajencia_view.kalendarz, name='kalendarz'),
+    path('opinie/', uzytkownik_views.dodaj_opinie, name='opinie'),
+    path('zapiszzajecia/<int:zajęcia_id>/', zajencia_view.zapisz_na_zajęcia, name='zapiszzajecia'),
+    path('dostępne_zajęcia/', zajencia_view.dostępne_zajęcia, name='dostępne_zajęcia')
 ]
