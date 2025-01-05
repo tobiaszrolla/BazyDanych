@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strona Główna Instruktora</title>
     <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
-    <script src="{% static 'szkola_jazdy/js/Hinstruktor.js' %}"></script>
+    <script src="{% static 'szkola_jazdy/js/Hinstruktor.js' %}" defer></script>
 </head>
 <body>
 
@@ -20,7 +20,8 @@
     <section class="hero">
         <h2>Witaj, Instruktorze!</h2>
         <p>Przejdź do podstrony zarządzania zajęciami, aby rozpocząć.</p>
-        <button onclick="navigateToZajecia()">Zarządzaj Zajęciami</button>
+        <button onclick="navigateToZajecia('dodaj')">Dodaj Zajęcia</button>
+        <button onclick="navigateToZajecia('usun')">Usuń Zajęcia</button>
     </section>
 
     <!-- Główna zawartość -->
@@ -32,6 +33,8 @@
             <li>Zarządzanie harmonogramem zajęć</li>
         </ul>
     </main>
+
+    <!-- Stopka -->
     <footer>
         <p>&copy; 2024 Szkoła Jazdy</p>
     </footer>
