@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Strona Główna Instruktora</title>
     <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
-    <script src="{% static 'szkola_jazdy/js/Hinstruktor.js' %}" defer></script>
 </head>
 <body>
 
@@ -20,8 +19,10 @@
     <section class="hero">
         <h2>Witaj, Instruktorze!</h2>
         <p>Przejdź do podstrony zarządzania zajęciami, aby rozpocząć.</p>
-        <button onclick="navigateToZajecia('dodaj')">Dodaj Zajęcia</button>
-        <button onclick="navigateToZajecia('usun')">Usuń Zajęcia</button>
+        <ul>
+            <li><a href="{% url 'add_zajęcia' %}">Dodaj Zajęcia</a></li>
+            <li><a href="{% url 'usun_zajecia' zajęcia_id=1 %}">Usuń Zajęcia</a></li>
+        </ul>
     </section>
 
     <!-- Główna zawartość -->

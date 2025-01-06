@@ -29,7 +29,7 @@ def is_admin(user):
     return user.is_superuser
 def str_to_time(time_str):
     return datetime.strptime(time_str, "%H:%M:%S").time()
-@login_required
+#@login_required
 def add_zajęcia(request):
     if request.method == "POST":
         # Sprawdzenie, czy użytkownik jest zalogowany
@@ -103,7 +103,7 @@ def add_zajęcia(request):
             "message": "Zajęcia zostały utworzone pomyślnie!"
         }, status=201)
 
-    return JsonResponse({"error": "Nieobsługiwana metoda. Użyj POST."}, status=405)
+    return render(request, "szkola_jazdy/add_zajęcia.html")
 
 
 #@login_required
@@ -165,7 +165,7 @@ def zapisz_na_zajęcia(request, zajęcia_id):
         return render(request, "szkola_jazdy/zapisz_na_zajecia.html")
 
 
-@login_required
+#@login_required
 def delete_zajęcia(request, zajęcia_id):
     if request.method == "DELETE":
         # Sprawdzenie, czy użytkownik ma odpowiedni typ
@@ -185,7 +185,7 @@ def delete_zajęcia(request, zajęcia_id):
         zajęcia.delete()
         return JsonResponse({"message": "Zajęcia zostały pomyślnie usunięte."}, status=200)
 
-    return JsonResponse({"error": "Nieprawidłowa metoda HTTP."}, status=405)
+    return render(request, "szkola_jazdy/usun_zajecia.html")
 
 #@csrf_exempt
 #@login_required

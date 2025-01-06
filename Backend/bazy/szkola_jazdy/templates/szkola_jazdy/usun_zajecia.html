@@ -1,0 +1,44 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuń Zajęcia</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+
+    <!-- Nagłówek -->
+    <header>
+        <div class="navbar">
+            <h1>Usuń Zajęcia</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'add_zajęcia' %}">Dodaj Zajęcia</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Formularz usuwania zajęć -->
+    <section class="form-section">
+        <h2>Usuń Zajęcia</h2>
+        <p>Wprowadź identyfikator zajęć, które chcesz usunąć.</p>
+        <form id="deleteZajeciaForm">
+            <label for="zajeciaId">ID Zajęć:</label>
+            <input type="number" id="zajeciaId" name="zajeciaId" required>
+            <button type="submit">Usuń Zajęcia</button>
+        </form>
+        <div id="responseMessage"></div>
+    </section>
+
+    <!-- Stopka -->
+    <footer>
+        <p>&copy; 2024 Szkoła Jazdy</p>
+    </footer>
+
+    <!-- Podłączenie JavaScript -->
+    <script src="{% static 'szkola_jazdy/js/usun_zajecia.js' %}" defer></script>
+</body>
+</html>

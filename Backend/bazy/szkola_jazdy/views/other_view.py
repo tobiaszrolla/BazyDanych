@@ -49,3 +49,4 @@ def Hinstruktor(request):
 
 def Hadmin(request):
     return render(request, 'szkola_jazdy/Hadmin.html')
+

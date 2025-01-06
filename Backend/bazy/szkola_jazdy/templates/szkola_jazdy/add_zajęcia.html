@@ -1,0 +1,92 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zajęcia Teoretyczne i Praktyczne</title>
+    <script src="{% static 'szkola_jazdy/js/Hinstruktor.js' %}" defer></script>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1>Zarządzanie Zajęciami</h1>
+            <nav>
+                <ul>
+                    <li><a href="/logout">Wyloguj</a></li>
+                    <li><a href="/">Strona Główna</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="hero">
+        <h2>Zajęcia Teoretyczne i Praktyczne</h2>
+    </div>
+
+    <main>
+        <!-- Sekcja Zajęcia Teoretyczne -->
+        <section>
+            <h3>Zajęcia Teoretyczne</h3>
+            <form id="teoretyczne-form">
+                <label for="teoretyczne-data">Data:</label>
+                <input type="date" id="teoretyczne-data" required>
+
+                <label for="teoretyczne-godzina-rozpoczęcia">Godzina Rozpoczęcia:</label>
+                <input type="time" id="teoretyczne-godzina-rozpoczęcia" required>
+
+                <label for="teoretyczne-godzina-zakończenia">Godzina Zakończenia:</label>
+                <input type="time" id="teoretyczne-godzina-zakończenia" required>
+
+                <label for="teoretyczne-sala">Sala:</label>
+                <input type="text" id="teoretyczne-sala" required>
+
+                <label for="teoretyczne-kategoria">Kategoria:</label>
+                <input type="text" id="teoretyczne-kategoria" required>
+
+                <button type="submit">Dodaj Zajęcia Teoretyczne</button>
+            </form>
+            <table>
+                <tbody id="teoretyczne-tabela">
+                    <!-- Dane będą dodawane dynamicznie -->
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Sekcja Zajęcia Praktyczne -->
+        <section>
+            <h3>Zajęcia Praktyczne</h3>
+            <form id="praktyczne-form">
+                <label for="praktyczne-data">Data:</label>
+                <input type="date" id="praktyczne-data" required>
+
+                <label for="praktyczne-godzina-rozpoczęcia">Godzina Rozpoczęcia:</label>
+                <input type="time" id="praktyczne-godzina-rozpoczęcia" required>
+
+                <label for="praktyczne-godzina-zakończenia">Godzina Zakończenia:</label>
+                <input type="time" id="praktyczne-godzina-zakończenia" required>
+
+                <label for="praktyczne-rejestracja">Numer Rejestracyjny:</label>
+                <input type="text" id="praktyczne-rejestracja" required>
+
+                <label for="praktyczne-kategoria">Kategoria:</label>
+                <input type="text" id="praktyczne-kategoria" required>
+
+                <button type="submit">Dodaj Zajęcia Praktyczne</button>
+            </form>
+            <table>
+
+                <tbody id="praktyczne-tabela">
+                    <!-- Dane będą dodawane dynamicznie -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Szkoła Jazdy</p>
+    </footer>
+
+    <script src="add_zajęcia.js"></script>
+</body>
+</html>
