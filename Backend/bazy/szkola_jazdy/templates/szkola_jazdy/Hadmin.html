@@ -26,16 +26,15 @@
     <main>
         <h2>Zarządzanie:</h2>
         <ul>
-            <li><button onclick="navigateTo('modyfikacja_pracownikow.html')">Modyfikacja pracowników</button></li>
-            <li><button onclick="navigateTo('modyfikacja_uzytkownikow.html')">Modyfikacja użytkowników</button></li>
-            <li><button onclick="navigateTo('modyfikacja_sali.html')">Modyfikacja sali</button></li>
-            <li><button onclick="navigateTo('modyfikacja_samochodow.html')">Modyfikacja samochodów</button></li>
-            <li><button onclick="navigateTo('dodawanie_samochodow.html')">Dodawanie samochodów</button></li>
-            <li><button onclick="navigateTo('dodawanie_sali.html')">Dodawanie sali</button></li>
-            <li><button onclick="navigateTo('usuwanie_samochodow.html')">Usuwanie samochodów</button></li>
-            <li><button onclick="navigateTo('usuwanie_sali.html')">Usuwanie sali</button></li>
-            <li><button onclick="navigateTo('dodawanie_uzytkownikow.html')">Dodawanie użytkowników</button></li>
-            <li><button onclick="navigateTo('usuwanie_uzytkownikow.html')">Usuwanie użytkowników</button></li>
+            <li><a href="#">Modyfikacja użytkowników (NIE)</a></li>
+            <li><a href="#">Modyfikacja sali (NIE)</a></li>
+            <li><a href="#">Modyfikacja samochodów (NIE)</a></li>
+            <li><a href="#">Dodawanie samochodów (NIE)</a></li>
+            <li><a href="{% url 'add_room' %}">Dodawanie sali</a></li>
+            <li><a href="#">Usuwanie samochodów (NIE)</a></li>
+            <li><a href="3">Usuwanie sali (POWINNO DZIAŁAĆ JAK BĘDZIE DOSTĘP DO BAZY)</a></li>
+            <li><a href="#">Dodawanie użytkowników (NIE)</a></li>
+            <li><a href="#">Usuwanie użytkowników (NIE)</a></li>
         </ul>
     </main>
     <footer>

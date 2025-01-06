@@ -1,0 +1,37 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szkoła Jazdy - Usuń Salę</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1>Szkoła Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'logout' %}">Wylogowanie</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h2>Usuń Salę</h2>
+            <form id="deleteRoomForm">
+                <label for="nazwa">Nazwa sali:</label>
+                <input type="text" id="nazwa" name="nazwa" required><br><br>
+
+                <button type="submit">Usuń Salę</button>
+            </form>
+            <p id="responseMessage"></p>
+        </section>
+    </main>
+
+    <script src="{% static 'szkola_jazdy/js/delete_room.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Szkoła Jazdy - Dodaj Salę</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1>Szkoła Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'logout' %}">Wylogowanie</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h2>Dodaj nową salę</h2>
+            <form id="addRoomForm">
+                <label for="nazwa">Nazwa sali:</label>
+                <input type="text" id="nazwa" name="nazwa" required><br><br>
+
+                <label for="capacity">Pojemność:</label>
+                <input type="number" id="capacity" name="capacity" required><br><br>
+
+                <label for="availability">Dostępność:</label>
+                <select id="availability" name="availability" required>
+                    <option value="True">Dostępna</option>
+                    <option value="False">Niedostępna</option>
+                </select><br><br>
+
+                <button type="submit">Dodaj Salę</button>
+            </form>
+            <p id="responseMessage"></p>
+        </section>
+    </main>
+
+    <script src="{% static 'szkola_jazdy/js/add_room.js' %}"></script>
+</body>
+</html>

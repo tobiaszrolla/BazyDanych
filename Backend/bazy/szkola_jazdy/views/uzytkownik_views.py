@@ -252,8 +252,8 @@ def delete_user(request, email):
 
     # Jeśli metoda żądania nie jest DELETE
     return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
-@csrf_exempt
-@user_passes_test(is_admin)
+#@csrf_exempt
+#@user_passes_test(is_admin)
 def modify_user(request, email):
     if request.method == "PUT":
         try:
@@ -282,7 +282,7 @@ def modify_user(request, email):
             return JsonResponse({"error": "Użytkownik o tym e-mailu nie istnieje."}, status=404)
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Metoda nie jest dozwolona."}, status=405)
+    return render(request, "szkola_jazdy/modify_user.html")
 
 @csrf_exempt
 def reset_password_request(request):

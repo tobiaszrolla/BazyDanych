@@ -24,8 +24,8 @@ from datetime import datetime
 def is_admin(user):
     return user.is_superuser
 
-@csrf_exempt
-@user_passes_test(is_admin)
+#@csrf_exempt
+#@user_passes_test(is_admin)
 def add_room(request):
     if request.method == "POST":
         try:
@@ -55,13 +55,13 @@ def add_room(request):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest POST
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+    return render(request, "szkola_jazdy/add_room.html")
 
 
 
 
-@csrf_exempt
-@user_passes_test(is_admin)
+#@csrf_exempt
+#@user_passes_test(is_admin)
 def delete_room(request, nazwa):
     if request.method == "DELETE":
         try:
@@ -75,7 +75,7 @@ def delete_room(request, nazwa):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest DELETE
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
+    return render(request, "szkola_jazdy/delete_room.js.html")
 
 @csrf_exempt
 @user_passes_test(is_admin)
