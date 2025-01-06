@@ -20,7 +20,7 @@ from django.contrib.auth.decorators import user_passes_test
 def is_admin(user):
     return user.is_superuser
 
-@user_passes_test(is_admin)
+#@user_passes_test(is_admin)
 def add_car(request):
     if request.method == "POST":
         try:
@@ -56,10 +56,10 @@ def add_car(request):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest POST
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj POST."}, status=405)
+    return render(request, "szkola_jazdy/add_car.html")
 
-@csrf_exempt
-@user_passes_test(is_admin)
+#@csrf_exempt
+#@user_passes_test(is_admin)
 def delete_car(request, registration_number):
     if request.method == "DELETE":
         try:
@@ -73,10 +73,10 @@ def delete_car(request, registration_number):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest DELETE
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj DELETE."}, status=405)
+    return render(request, "szkola_jazdy/delete_car.html")
 
-@csrf_exempt
-@user_passes_test(is_admin)
+#@csrf_exempt
+#@user_passes_test(is_admin)
 def modify_car(request, registration_number):
     if request.method == "PUT":
         try:
@@ -99,4 +99,4 @@ def modify_car(request, registration_number):
         except Exception as e:
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+    return render(request, "szkola_jazdy/modify_car.html")

@@ -26,15 +26,16 @@
     <main>
         <h2>Zarządzanie:</h2>
         <ul>
-            <li><a href="#">Modyfikacja użytkowników (NIE)</a></li>
-            <li><a href="#">Modyfikacja sali (NIE)</a></li>
-            <li><a href="#">Modyfikacja samochodów (NIE)</a></li>
-            <li><a href="#">Dodawanie samochodów (NIE)</a></li>
+            <li><a href="{% url 'modify_user' 'example@example.com' %}">Modyfikacja użytkownika</a></li>
+            <li><a href="{% url 'modify_room' nazwa='nazwa_sali' %}">Modyfikacja sali</a></li>
+            <li><a href="{% url 'modify_car' 'ABC123' %}">Modyfikacja samochodów</a></li>
+            <li><a href="{% url 'add_car' %}">Dodawanie samochodów</a></li>
             <li><a href="{% url 'add_room' %}">Dodawanie sali</a></li>
-            <li><a href="#">Usuwanie samochodów (NIE)</a></li>
-            <li><a href="3">Usuwanie sali (POWINNO DZIAŁAĆ JAK BĘDZIE DOSTĘP DO BAZY)</a></li>
-            <li><a href="#">Dodawanie użytkowników (NIE)</a></li>
-            <li><a href="#">Usuwanie użytkowników (NIE)</a></li>
+            <li><a href="{% url 'delete_car' 'EXAMPLE123' %}">Usuwanie samochodów</a></li>
+            <li><a href="{% url 'delete_room' nazwa='nazwa_sali' %}">Usuwanie sali</a></li>
+            <li><a href="#">Dodawanie użytkowników (NIE MAMY TEGO W BACKEDNDZIE, CHYBA PIERDOLIMY XD)</a></li>
+            <li><a href="{% url 'delete_user' email='example@example.com' %}">Usuwanie użytkownika</a></li>
+
         </ul>
     </main>
     <footer>

@@ -1,0 +1,58 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modyfikacja Użytkownika</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1>Szkoła Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'logout' %}">Wyloguj</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="form-section">
+            <h2>Modyfikacja Użytkownika</h2>
+            <form id="modifyUserForm">
+                <label for="email">E-mail użytkownika do modyfikacji:</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="imię">Nowe Imię:</label>
+                <input type="text" id="imię" name="imię">
+
+                <label for="nazwisko">Nowe Nazwisko:</label>
+                <input type="text" id="nazwisko" name="nazwisko">
+
+                <label for="nrTelefonu">Nowy Numer Telefonu:</label>
+                <input type="tel" id="nrTelefonu" name="nrTelefonu">
+
+                <label for="data_urodzenia">Nowa Data Urodzenia:</label>
+                <input type="date" id="data_urodzenia" name="data_urodzenia">
+
+                <label for="typ_użytkownika">Nowy Typ Użytkownika:</label>
+                <select id="typ_użytkownika" name="typ_użytkownika">
+                    <option value="">Nie zmieniaj</option>
+                    <option value="admin">Admin</option>
+                    <option value="instruktor">Instruktor</option>
+                    <option value="kursant">Kursant</option>
+                </select>
+
+                <label for="password">Nowe Hasło:</label>
+                <input type="password" id="password" name="password">
+
+                <button type="submit">Zapisz zmiany</button>
+            </form>
+            <div id="responseMessage" class="hidden"></div>
+        </section>
+    </main>
+    <script src="{% static 'szkola_jazdy/js/modify_user.js' %}"></script>
+</body>
+</html>

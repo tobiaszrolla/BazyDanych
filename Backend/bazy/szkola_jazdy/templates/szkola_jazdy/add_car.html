@@ -1,0 +1,47 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodaj Samochód</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1>Szkoła Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'logout' %}">Wyloguj</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <section class="form-section">
+            <h2>Dodaj Samochód</h2>
+            <form id="addCarForm">
+                <label for="registration_number">Numer Rejestracyjny:</label>
+                <input type="text" id="registration_number" name="registration_number" required>
+
+                <label for="model">Model:</label>
+                <input type="text" id="model" name="model" required>
+
+                <label for="production_year">Rok Produkcji:</label>
+                <input type="number" id="production_year" name="production_year" min="1900" max="2099" required>
+
+                <label for="availability">Dostępność:</label>
+                <select id="availability" name="availability" required>
+                    <option value="true">Dostępny</option>
+                    <option value="false">Niedostępny</option>
+                </select>
+
+                <button type="submit">Dodaj Samochód</button>
+            </form>
+            <div id="responseMessage" class="hidden"></div>
+        </section>
+    </main>
+    <script src="{% static 'szkola_jazdy/js/add_car.js' %}"></script>
+</body>
+</html>

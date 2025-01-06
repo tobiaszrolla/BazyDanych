@@ -1,0 +1,42 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modyfikacja Samochodu</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1>Szkoła Jazdy</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'home' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'logout' %}">Wylogowanie</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main>
+        <h2>Modyfikacja Samochodu</h2>
+        <form id="modifyCarForm">
+            <label for="model">Model:</label>
+            <input type="text" id="model" name="model">
+
+            <label for="production_year">Rok produkcji:</label>
+            <input type="number" id="production_year" name="production_year">
+
+            <label for="availability">Dostępność:</label>
+            <select id="availability" name="availability">
+                <option value="true">Dostępny</option>
+                <option value="false">Niedostępny</option>
+            </select>
+
+            <button type="submit">Zapisz zmiany</button>
+        </form>
+        <p id="message"></p>
+    </main>
+    <script src="{% static 'szkola_jazdy/js/modify_car.js' %}"></script>
+</body>
+</html>

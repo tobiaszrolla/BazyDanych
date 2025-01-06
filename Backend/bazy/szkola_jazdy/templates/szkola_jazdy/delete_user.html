@@ -1,0 +1,49 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuwanie użytkownika</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+    <script src="{% static 'szkola_jazdy/js/delete_user.js' %}"></script>
+</head>
+<body>
+    <h1>Usuwanie użytkownika</h1>
+    <p>Wprowadź e-mail użytkownika, którego chcesz usunąć:</p>
+
+    <input type="email" id="email" placeholder="example@example.com">
+    <button onclick="deleteUser()">Usuń użytkownika</button>
+
+    <script>
+        function deleteUser() {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                alert('Proszę podać e-mail użytkownika!');
+                return;
+            }
+
+            if (confirm(`Czy na pewno chcesz usunąć użytkownika o adresie e-mail: ${email}?`)) {
+                fetch(`/delete_user/${email}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}', // Dodanie tokena CSRF
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert(data.message); // Wyświetlenie komunikatu o sukcesie
+                    } else {
+                        alert('Wystąpił błąd: ' + data.error); // Obsługa błędu
+                    }
+                })
+                .catch(error => {
+                    console.error('Błąd:', error);
+                    alert('Wystąpił błąd.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

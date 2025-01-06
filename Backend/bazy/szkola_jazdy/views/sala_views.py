@@ -75,10 +75,10 @@ def delete_room(request, nazwa):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest DELETE
-    return render(request, "szkola_jazdy/delete_room.js.html")
+    return render(request, "szkola_jazdy/delete_room.html")
 
-@csrf_exempt
-@user_passes_test(is_admin)
+#@csrf_exempt
+#@user_passes_test(is_admin)
 def modify_room(request, nazwa):
     if request.method == "PUT":
         try:
@@ -95,5 +95,5 @@ def modify_room(request, nazwa):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     # Jeśli metoda żądania nie jest PUT
-    return JsonResponse({"error": "Nieobsługiwana metoda żądania. Użyj PUT."}, status=405)
+    return render(request, "szkola_jazdy/modify_room.html")
 
