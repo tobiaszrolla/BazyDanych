@@ -228,38 +228,38 @@ def dostępne_zajęcia(request):
     return render(request, "szkola_jazdy/zapisz_na_zajecia.html")
 
 @login_required
-@require_POST
 def kalendarz(request):
-    try:
-        user = request.user
-        if user.is_superuser:
-            return JsonResponse({"error": f"Administrator nie zapisuje się na zajęcia"}, status=403)
-        elif user.typ_użytkownika.lower() in ['instruktor', 'pracownik']:
-            zajęcia = Zajęcia.objects.filter(instruktor=user)
+    if request.method == "GET":
+        try:
+            user = request.user
+            if user.is_superuser:
+                return JsonResponse({"error": f"Administrator nie zapisuje się na zajęcia"}, status=403)
+            elif user.typ_użytkownika.lower() in ['instruktor', 'pracownik']:
+                zajęcia = Zajęcia.objects.filter(instruktor=user)
 
-        elif request.user.typ_użytkownika.lower() == 'kursant':
-            zajęcia = KursanciNaZajęciach.objects.filter(użytkownik=user).select_related('zajęcia')
-            logger.info(f"Zajęcia kursanta: {zajęcia}")
-        zajęcia_list = []
-        for zajęcie in zajęcia:
-            #to jest potrzebne dla tablicy pośredniej
-            if isinstance(zajęcie, KursanciNaZajęciach):
-                zajęcie = zajęcie.zajęcia
+            elif request.user.typ_użytkownika.lower() == 'kursant':
+                zajęcia = KursanciNaZajęciach.objects.filter(użytkownik=user).select_related('zajęcia')
+                logger.info(f"Zajęcia kursanta: {zajęcia}")
+            zajęcia_list = []
+            for zajęcie in zajęcia:
+                #to jest potrzebne dla tablicy pośredniej
+                if isinstance(zajęcie, KursanciNaZajęciach):
+                    zajęcie = zajęcie.zajęcia
 
-            zajęcia_list.append({
-                "id": zajęcie.id,
-                "sala": zajęcie.sala.nazwa if zajęcie.sala else None,
-                "samochód": zajęcie.samochód.registration_number if zajęcie.samochód else None,
-                "godzina_rozpoczęcia": zajęcie.godzina_rozpoczęcia.strftime("%H:%M"),
-                "godzina_zakończenia": zajęcie.godzina_zakończenia.strftime("%H:%M"),
-                "data": zajęcie.data.strftime("%Y-%m-%d"),
-                "instruktor": f"{zajęcie.instruktor.imię} {zajęcie.instruktor.nazwisko}" if zajęcie.instruktor else None
-            })
+                zajęcia_list.append({
+                    "id": zajęcie.id,
+                    "sala": zajęcie.sala.nazwa if zajęcie.sala else None,
+                    "samochód": zajęcie.samochód.registration_number if zajęcie.samochód else None,
+                    "godzina_rozpoczęcia": zajęcie.godzina_rozpoczęcia.strftime("%H:%M"),
+                    "godzina_zakończenia": zajęcie.godzina_zakończenia.strftime("%H:%M"),
+                    "data": zajęcie.data.strftime("%Y-%m-%d"),
+                    "instruktor": f"{zajęcie.instruktor.imię} {zajęcie.instruktor.nazwisko}" if zajęcie.instruktor else None
+                })
 
-        return JsonResponse({"zajęcia": zajęcia_list}, status=200)
-    except Exception as e:
-        logger.error(f"Error in kalendarz view: {str(e)}")
-        return render(request, "szkola_jazdy/kalendarz.html")
+            return JsonResponse({"zajęcia": zajęcia_list}, status=200)
+        except Exception as e:
+            logger.error(f"Error in kalendarz view: {str(e)}")
+            return render(request, "szkola_jazdy/kalendarz.html")
 
 
 @require_POST

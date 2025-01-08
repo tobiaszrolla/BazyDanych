@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
             imię: form.imię.value.trim(),
             nazwisko: form.nazwisko.value.trim(),
             data_urodzenia: form.data_urodzenia.value.trim(),
-            typ_użytkownika: form.typ_użytkownika.value.trim(),
+            //typ_użytkownika: form.typ_użytkownika.value.trim(),
             password: form.password.value.trim(),
         };
 

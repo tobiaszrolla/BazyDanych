@@ -40,12 +40,14 @@ class Użytkownik(AbstractUser):
     nazwisko = encrypt(models.CharField(max_length=50))
     data_urodzenia = encrypt(models.DateField(null=True, blank=True))
     typ_użytkownika = models.CharField(max_length=10, choices=TYP_UŻYTKOWNIKA)
-    kategoria = models.CharField(max_length=3, choices=KATEGORIA, null=True)
+    kategoria = models.CharField(max_length=3, choices=KATEGORIA)
     godziny_lekcji_praktycznych = models.IntegerField(default=0)
     godziny_lekcje_teoretyczne = models.IntegerField(default=0)
     posiadane_lekcje_teoretyczne = models.IntegerField(default=30)
     posiadane_lekcje_praktyczne = models.IntegerField(default=30)
     Opinie = models.CharField(max_length=250, null=True, blank=True)
+
+    username = models.CharField(max_length=40, unique=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['imię', 'nazwisko']
@@ -66,7 +68,7 @@ class Zajęcia(models.Model):
     kursanci = models.ManyToManyField('Użytkownik', through='KursanciNaZajęciach') #odwołanie do tablicy pośredniej
     instruktor = models.ForeignKey(Użytkownik, on_delete=models.SET_NULL, null=True, blank=True,
                                    related_name='instruktor')
-    kategoria = models.CharField(max_length=3, choices=KATEGORIA)
+    kategoria = models.CharField(max_length=3, choices=KATEGORIA, null=True)
     godzina_rozpoczęcia = models.TimeField()
     godzina_zakończenia = models.TimeField()
     dostempne_miejsca = models.IntegerField(default=0)

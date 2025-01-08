@@ -64,7 +64,7 @@
                         verifyCode(verificationCode);
                     }
                 } else {
-                    window.location.href = "/dashboard/"; // Redirect to the dashboard or home page
+                    window.location.href = "/kalendarz/"; // Redirect to the dashboard or home page
                 }
             }
         })
@@ -91,7 +91,7 @@
                 alert(data.error); // Display error message if any
             } else {
                 alert("Kod weryfikacyjny został poprawnie zweryfikowany.");
-                window.location.href = "/dashboard/"; // Redirect to the dashboard or home page
+                window.location.href = "/kalendarz/"; // Redirect to the dashboard or home page
             }
         })
         .catch(error => {

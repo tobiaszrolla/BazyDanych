@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import other_view, sala_views, samochod_views, uzytkownik_views, zajencia_view, kalendarz, transakcje_views
+from .views import other_view, sala_views, samochod_views, uzytkownik_views, zajencia_view, kalendarz
 
 urlpatterns = [
     path('register/', uzytkownik_views.register, name='register'),
@@ -21,7 +21,6 @@ urlpatterns = [
     path('zapisz_na_kurs/', uzytkownik_views.zapisz_na_kurs, name='zapisz_na_kurs'),
     path('dodaj_opinie/', uzytkownik_views.dodaj_opinie, name='dodaj_opinie'),
     path('kalendarz/', zajencia_view.kalendarz, name='kalendarz'),
-    path('transakcja/<int:zajęcia_id>/<int:kursant_id>/', transakcje_views.transakcja, name='transakcja'),
     path('zakoncz_zajecia/<int:zajęcia_id>/<int:kursant_id>/', zajencia_view.zakoncz_zajecia, name='zakoncz_zajecia'),
     path('zajęcia/<int:zajęcia_id>/zapisz/', zajencia_view.zapisz_na_zajęcia, name='zapisz_na_zajacia'),
     path('verify_code/', uzytkownik_views.verify_code, name='verify_code'),

@@ -36,7 +36,7 @@ document.getElementById("loginForm").addEventListener("submit", function(event) 
                     verifyCode(verificationCode);
                 }
             } else {
-                window.location.href = "/dashboard/"; // Redirect to the dashboard or home page
+                window.location.href = "/kalendarz/"; // Redirect to the dashboard or home page
             }
         }
     })
@@ -63,7 +63,7 @@ function verifyCode(verificationCode) {
             alert(data.error); // Display error message if any
         } else {
             alert("Kod weryfikacyjny został poprawnie zweryfikowany.");
-            window.location.href = "/dashboard/"; // Redirect to the dashboard or home page
+            window.location.href = "/kalendarz/"; // Redirect to the dashboard or home page
         }
     })
     .catch(error => {

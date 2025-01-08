@@ -28,6 +28,8 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.json()['message'], "Użytkownik został zarejestrowany pomyślnie!")
 
+        print(Użytkownik.objects.filter(email="testuser@example.com").first().imię)
+
     def test_register_user_exists(self):
         Użytkownik.objects.create_user(username="testuser@example.com",email="testuser@example.com", password="existingpassword123")
         response = self.client.post(reverse('register'), data=json.dumps(self.user_data), content_type="application/json")

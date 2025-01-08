@@ -35,6 +35,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import user_passes_test
 from datetime import datetime, timedelta
+from django.contrib.auth import authenticate, login as django_login, get_user_model
 import random
 import string
 def is_admin(user):
@@ -51,19 +52,22 @@ def register(request):
         try:
             # Parsowanie danych JSON z żądania
             data = json.loads(request.body)
+            print("Metoda żądania:", request.method)
+            print("Treść żądania:", request.body)
+            print("Dane odebrane z żądania:", data)
             email = data.get("email")
-            username = data.get("email")
             nrTelefonu = data.get("nrTelefonu", None)
             imię = data.get("imię")
             nazwisko = data.get("nazwisko")
             data_urodzenia = data.get("data_urodzenia", None)
-            typ_użytkownika = data.get("typ_użytkownika")
+            #typ_użytkownika = data.get("typ_użytkownika")
             password = data.get("password")
             #Sprawdza liczbę kursantów
             if Użytkownik.objects.filter(typ_użytkownika='kursant').count() >= 30:
                 return JsonResponse({"error": "Przepraszamy nie mamy wolnych miejsc."}, status=400)
             # Walidacja: Sprawdzanie, czy wymagane dane są dostępne
-            if not email or not imię or not nazwisko or not typ_użytkownika or not password:
+            #if not email or not imię or not nazwisko or not typ_użytkownika or not password:
+            if not email or not imię or not nazwisko or not password:
                 return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
 
             # Sprawdzenie, czy e-mail jest już zajęty
@@ -74,15 +78,15 @@ def register(request):
             # Tworzenie użytkownika
             user = Użytkownik.objects.create(
                 email=email,
-                username=email,
+                #username=email,
                 nrTelefonu=nrTelefonu,
                 imię=imię,
                 nazwisko=nazwisko,
                 data_urodzenia=data_urodzenia,
-                typ_użytkownika=typ_użytkownika,
+                typ_użytkownika="Kursant",
                 password=make_password(password),
-                kategoria=None,
-                Opinie=None
+                kategoria="B",
+                Opinie=""
             )
             user.save()
             return JsonResponse({"message": "Użytkownik został zarejestrowany pomyślnie!"}, status=201)
@@ -145,7 +149,7 @@ def send_verification_code(user):
         from_email="noreply@domain.com",
         recipient_list=[user.email],
     )
-
+'''
 @csrf_exempt
 def login(request):
     if request.method == "POST":
@@ -187,7 +191,41 @@ def login(request):
             return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
 
     return render(request, "szkola_jazdy/login.html")
+'''
+@csrf_exempt
+def login(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            email = data.get("email")
+            password = data.get("password")
 
+            if not email or not password:
+                return JsonResponse({"error": "Email i hasło są wymagane."}, status=400)
+
+            # Sprawdzenie, czy użytkownik istnieje w bazie danych
+            User = get_user_model()  # Pobierz niestandardowy model użytkownika
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                return JsonResponse({"error": "Użytkownik o podanym emailu nie istnieje."}, status=404)
+
+            # Sprawdzenie, czy hasło jest poprawne
+            user = authenticate(request, username=email, password=password)
+            if user is None:
+                return JsonResponse({"error": "Nieprawidłowe hasło."}, status=401)
+
+            # Logowanie użytkownika
+            django_login(request, user)
+            return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."},
+                                status=400)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    return render(request, "szkola_jazdy/login.html")
 
 @csrf_exempt
 def verify_code(request):
