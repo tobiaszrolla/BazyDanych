@@ -50,3 +50,6 @@ def Hinstruktor(request):
 def Hadmin(request):
     return render(request, 'szkola_jazdy/Hadmin.html')
 
+def Huser(request):
+    return render(request, 'szkola_jazdy/Huser.html')
+

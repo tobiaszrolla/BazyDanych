@@ -1,0 +1,31 @@
+{% load static %}
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strona Główna</title>
+    <link rel="stylesheet" href="{% static 'szkola_jazdy/css/style.css' %}">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1>Witamy!</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'kalendarz' %}">Kalendarz</a></li>
+                    <li><a href="{% url 'zapiszzajecia' zajęcia_id=1 %}">Zapis na zajęcia</a></li>
+                    <li><a href="{% url 'zapisz_na_kurs' %}">Zapis na kurs</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h2>Twoje centrum zarządzania</h2>
+        <p>Wybierz opcję, której potrzebujesz:</p>
+    </section>
+    <footer>
+        <p>© 2024 Szkoła Jazdy</p>
+    </footer>
+</body>
+</html>
