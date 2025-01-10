@@ -30,6 +30,7 @@ class Użytkownik(AbstractUser):
         ('instruktor', 'Instruktor'),
     ]
     KATEGORIA = [
+        ("No", "NO"),
         ("B", "Kategoria B"),
         ("B1", "Kategoria B1"),
         ("C", "Kategoria C"),
@@ -43,8 +44,8 @@ class Użytkownik(AbstractUser):
     kategoria = models.CharField(max_length=3, choices=KATEGORIA)
     godziny_lekcji_praktycznych = models.IntegerField(default=0)
     godziny_lekcje_teoretyczne = models.IntegerField(default=0)
-    posiadane_lekcje_teoretyczne = models.IntegerField(default=30)
-    posiadane_lekcje_praktyczne = models.IntegerField(default=30)
+    posiadane_lekcje_teoretyczne = models.IntegerField(default=0)
+    posiadane_lekcje_praktyczne = models.IntegerField(default=0)
     Opinie = models.CharField(max_length=250, null=True, blank=True)
 
     username = models.CharField(max_length=40, unique=True)

@@ -85,7 +85,7 @@ def register(request):
                 data_urodzenia=data_urodzenia,
                 typ_użytkownika="Kursant",
                 password=make_password(password),
-                kategoria="B",
+                kategoria="No",
                 Opinie=""
             )
             user.save()
@@ -115,7 +115,7 @@ def zapisz_na_kurs(request):
                 return JsonResponse({"error": "Musisz być pracownikiem, aby tworzyć zajęcia."}, status=403)
             if not kategoria or not (lekcje_teoretyczne or lekcje_praktyczne):
                 return JsonResponse({"error": "Brak wymaganych danych."}, status=400)
-            if request.user.kategoria != kategoria and request.user.kategoria != None:
+            if request.user.kategoria != kategoria and request.user.kategoria != "No":
                 return JsonResponse({"error": "robisz prawojazdy na inną kategorie"}, status=403)
             kategorie_wiek = {"B": 18, "B1": 16, "C": 21}
             wymagany_wiek = kategorie_wiek.get(kategoria)

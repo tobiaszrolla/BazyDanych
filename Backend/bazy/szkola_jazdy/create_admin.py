@@ -1,4 +1,4 @@
-from .models import (Użytkownik)
+'''from .models import (Użytkownik)
 
 def create_admin():
     if not Użytkownik.objects.filter(email='admin@domain.com').exists():
@@ -14,3 +14,5 @@ def create_admin():
     else:
         print("Administrator już istnieje.")
         return Użytkownik.objects.get(email='admin@domain.com')
+'''
+
