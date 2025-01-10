@@ -44,5 +44,5 @@ urlpatterns = [
     path('modify_car/<str:registration_number>/', samochod_views.modify_car, name='modify_car'),
     path('delete_car/<str:registration_number>/', samochod_views.delete_car, name='delete_car'),
     path('delete_user/<str:email>/', uzytkownik_views.delete_user, name='delete_user'),
-    path('Huser', other_view.Huser, name='Huser')
+    path('Huser/', other_view.Huser, name='Huser')
 ]

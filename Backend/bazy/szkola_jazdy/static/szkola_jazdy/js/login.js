@@ -36,7 +36,7 @@ document.getElementById("loginForm").addEventListener("submit", function(event) 
                     verifyCode(verificationCode);
                 }
             } else {
-                window.location.href = "/kalendarz/"; // Redirect to the dashboard or home page
+                window.location.href = "/Huser/"; // Redirect to the dashboard or home page
             }
         }
     })
