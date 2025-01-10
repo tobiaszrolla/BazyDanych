@@ -24,8 +24,8 @@ from datetime import datetime
 def is_admin(user):
     return user.is_superuser
 
-#@csrf_exempt
-#@user_passes_test(is_admin)
+@csrf_exempt
+@user_passes_test(is_admin)
 def add_room(request):
     if request.method == "POST":
         try:
@@ -60,8 +60,8 @@ def add_room(request):
 
 
 
-#@csrf_exempt
-#@user_passes_test(is_admin)
+@csrf_exempt
+@user_passes_test(is_admin)
 def delete_room(request, nazwa):
     if request.method == "DELETE":
         try:
@@ -77,13 +77,19 @@ def delete_room(request, nazwa):
     # Jeśli metoda żądania nie jest DELETE
     return render(request, "szkola_jazdy/delete_room.html")
 
-#@csrf_exempt
-#@user_passes_test(is_admin)
-def modify_room(request, nazwa):
+@csrf_exempt
+@user_passes_test(is_admin)
+def modify_room(request):
     if request.method == "PUT":
         try:
             data = json.loads(request.body)
+            nazwa = data.get("nazwa")
+
+            # Nazwa Sali jest wymagana
+            if not nazwa:
+                return JsonResponse({"error": "Nazwa Sali jest wymagany."}, status=400)
             room = Sala.objects.get(nazwa=nazwa)
+
             # Logika modyfikacji
             room.availability = data.get('availability', room.availability)
             room.capacity = data.get('capacity', room.capacity)
@@ -96,4 +102,5 @@ def modify_room(request, nazwa):
 
     # Jeśli metoda żądania nie jest PUT
     return render(request, "szkola_jazdy/modify_room.html")
+
 

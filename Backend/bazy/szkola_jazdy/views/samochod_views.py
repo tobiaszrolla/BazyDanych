@@ -20,7 +20,7 @@ from django.contrib.auth.decorators import user_passes_test
 def is_admin(user):
     return user.is_superuser
 
-#@user_passes_test(is_admin)
+@user_passes_test(is_admin)
 def add_car(request):
     if request.method == "POST":
         try:
@@ -58,8 +58,8 @@ def add_car(request):
     # Jeśli metoda żądania nie jest POST
     return render(request, "szkola_jazdy/add_car.html")
 
-#@csrf_exempt
-#@user_passes_test(is_admin)
+@csrf_exempt
+@user_passes_test(is_admin)
 def delete_car(request, registration_number):
     if request.method == "DELETE":
         try:
@@ -74,17 +74,51 @@ def delete_car(request, registration_number):
 
     # Jeśli metoda żądania nie jest DELETE
     return render(request, "szkola_jazdy/delete_car.html")
-
-#@csrf_exempt
-#@user_passes_test(is_admin)
+'''
+@csrf_exempt
+@user_passes_test(is_admin)
 def modify_car(request, registration_number):
     if request.method == "PUT":
         try:
+            data = json.loads(request.body)
+            registration_number = data.get("registration_number")
+
+            # Sprawdzenie, czy numer rejestracyjny został podany
+            if not registration_number:
+                return JsonResponse({"error": "Numer rejestracyjny jest wymagany."}, status=400)
+
             # Pobranie samochodu do modyfikacji
             car = Samochód.objects.get(registration_number=registration_number)
 
+            # Aktualizacja danych samochodu
+            car.model = data.get("model", car.model)
+            car.production_year = data.get("production_year", car.production_year)
+            car.availability = data.get("availability", car.availability)
+
+            car.save()
+            return JsonResponse({"message": "Dane samochodu zostały zmodyfikowane pomyślnie!"}, status=200)
+
+        except Samochód.DoesNotExist:
+            return JsonResponse({"error": "Samochód o tym numerze rejestracyjnym nie istnieje."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": f"Wystąpił błąd: {str(e)}"}, status=500)
+
+    return render(request, "szkola_jazdy/modify_car.html")'''
+@csrf_exempt
+@user_passes_test(is_admin)
+def modify_car(request):
+    if request.method == "PUT":
+        try:
             # Parsowanie danych JSON z żądania
             data = json.loads(request.body)
+            registration_number = data.get("registration_number")
+
+            # Sprawdzenie, czy numer rejestracyjny został podany
+            if not registration_number:
+                return JsonResponse({"error": "Numer rejestracyjny jest wymagany."}, status=400)
+
+            # Pobranie samochodu do modyfikacji
+            car = Samochód.objects.get(registration_number=registration_number)
 
             # Aktualizacja danych samochodu
             car.model = data.get("model", car.model)
