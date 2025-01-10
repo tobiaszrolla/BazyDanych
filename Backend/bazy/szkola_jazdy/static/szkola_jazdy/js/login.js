@@ -1,3 +1,4 @@
+/*
 document.getElementById("loginForm").addEventListener("submit", function(event) {
     event.preventDefault(); // Prevent the form from submitting the traditional way
 
@@ -70,3 +71,46 @@ function verifyCode(verificationCode) {
         alert("Wystąpił błąd podczas weryfikacji: " + error);
     });
 }
+*/
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+    event.preventDefault(); // Zapobieganie tradycyjnemu przesyłaniu formularza
+
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    // Sprawdzenie, czy email i hasło zostały podane
+    if (!email || !password) {
+        alert("Email i hasło są wymagane.");
+        return;
+    }
+
+    const data = {
+        email: email,
+        password: password
+    };
+
+    // Wysyłanie żądania logowania do backendu Django
+    fetch("/login/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error); // Wyświetlenie komunikatu o błędzie
+        } else if (data.message) {
+            alert(data.message); // Wyświetlenie komunikatu o sukcesie
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url.startsWith("/")
+                    ? data.redirect_url
+                    : "/" + data.redirect_url;
+            }
+        }
+    })
+    .catch(error => {
+        alert("Wystąpił błąd: " + error);
+    });
+});

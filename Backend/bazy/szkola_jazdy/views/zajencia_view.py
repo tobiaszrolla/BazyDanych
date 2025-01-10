@@ -29,7 +29,7 @@ def is_admin(user):
     return user.is_superuser
 def str_to_time(time_str):
     return datetime.strptime(time_str, "%H:%M:%S").time()
-#@login_required
+@login_required
 def add_zajęcia(request):
     if request.method == "POST":
         # Sprawdzenie, czy użytkownik jest zalogowany

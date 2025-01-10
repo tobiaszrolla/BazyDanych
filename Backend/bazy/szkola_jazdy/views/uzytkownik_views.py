@@ -78,7 +78,7 @@ def register(request):
             # Tworzenie użytkownika
             user = Użytkownik.objects.create(
                 email=email,
-                #username=email,
+                username=email,
                 nrTelefonu=nrTelefonu,
                 imię=imię,
                 nazwisko=nazwisko,
@@ -217,7 +217,15 @@ def login(request):
 
             # Logowanie użytkownika
             django_login(request, user)
-            return JsonResponse({"message": "Zalogowano pomyślnie."}, status=200)
+            redirect_url = ""
+            if user.is_superuser:
+                redirect_url = "/Hadmin"
+            elif user.typ_użytkownika == "Instruktor":
+                redirect_url = "/Hinstruktor"
+            else:
+                redirect_url = "loggedin/"
+
+            return JsonResponse({"message": "Zalogowano pomyślnie.", "redirect_url": redirect_url}, status=200)
 
         except json.JSONDecodeError:
             return JsonResponse({"error": "Nieprawidłowe dane wejściowe. Upewnij się, że wysyłasz poprawny JSON."},
