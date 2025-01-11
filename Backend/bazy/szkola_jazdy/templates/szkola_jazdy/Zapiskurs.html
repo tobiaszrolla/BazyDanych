@@ -15,8 +15,8 @@
             <h1>Szkoła Jazdy - Zapis na kurs</h1>
             <nav>
                 <ul>
-                    <li><a href="/home" id="homeButton">Strona główna</a></li>
-                    <li><a href="#" id="logoutButton">Wyloguj się</a></li>
+                    <li><a href="{% url 'loggedin' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'login' %}">Wylogowanie</a></li>
                 </ul>
             </nav>
         </div>

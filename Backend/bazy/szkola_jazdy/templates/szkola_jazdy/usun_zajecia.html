@@ -11,27 +11,29 @@
     <!-- Nagłówek -->
     <header>
         <div class="navbar">
-            <h1>Usuń Zajęcia</h1>
+            <h1>Szkoła Jazdy</h1>
             <nav>
                 <ul>
-                    <li><a href="{% url 'home' %}">Strona Główna</a></li>
-                    <li><a href="{% url 'add_zajęcia' %}">Dodaj Zajęcia</a></li>
+                    <li><a href="{% url 'Hintrukotor' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'login' %}">Wylogowanie</a></li>
                 </ul>
             </nav>
         </div>
     </header>
 
-    <!-- Formularz usuwania zajęć -->
-    <section class="form-section">
-        <h2>Usuń Zajęcia</h2>
-        <p>Wprowadź identyfikator zajęć, które chcesz usunąć.</p>
-        <form id="deleteZajeciaForm">
-            <label for="zajeciaId">ID Zajęć:</label>
-            <input type="number" id="zajeciaId" name="zajeciaId" required>
-            <button type="submit">Usuń Zajęcia</button>
-        </form>
-        <div id="responseMessage"></div>
-    </section>
+    <!-- Główna sekcja -->
+    <main>
+        <section class="form-section">
+            <h2>Usuń Zajęcia</h2>
+            <p>Wprowadź identyfikator zajęć, które chcesz usunąć:</p>
+            <form id="deleteZajeciaForm">
+                <label for="zajeciaId">ID Zajęć:</label>
+                <input type="number" id="zajeciaId" name="zajeciaId" placeholder="Wprowadź ID zajęć" required>
+                <button type="submit">Usuń Zajęcia</button>
+            </form>
+            <div id="responseMessage"></div>
+        </section>
+    </main>
 
     <!-- Stopka -->
     <footer>

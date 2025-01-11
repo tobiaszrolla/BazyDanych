@@ -8,7 +8,15 @@
 </head>
 <body>
     <header>
-        <h1>Dodaj swoją opinię</h1>
+        <div class="navbar">
+            <h1>Szkoła Jazdy - Opinie</h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'loggedin' %}">Strona Główna</a></li>
+                    <li><a href="{% url 'login' %}">Wylogowanie</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
     <main>
         <form id="opiniaForm">
