@@ -1,4 +1,3 @@
-// Obsługa przycisków do wyświetlania formularzy
 document.getElementById("dodaj-teoretyczne").addEventListener("click", () => {
     toggleForm("teoretyczne-form");
 });
@@ -23,7 +22,20 @@ document.getElementById("teoretyczne-form").addEventListener("submit", (event) =
     const sala = document.getElementById("teoretyczne-sala").value;
     const kategoria = document.getElementById("teoretyczne-kategoria").value;
 
+    const zajeciaData = {
+        data,
+        godzina_rozpoczęcia: godzinaRozpoczęcia,
+        godzina_zakończenia: godzinaZakończenia,
+        nazwa_sali: sala,
+        kategoria: kategoria
+    };
+    // Wysyłanie danych do serwera
+    sendZajęciaData(zajeciaData, "teoretyczne-tabela");
+
+    // Dodawanie wiersza do tabeli (lokalne przechowywanie)
     addRow("teoretyczne-tabela", [data, godzinaRozpoczęcia, godzinaZakończenia, sala, kategoria]);
+
+    // Ukrywanie formularza
     toggleForm("teoretyczne-form");
 });
 
@@ -37,9 +49,54 @@ document.getElementById("praktyczne-form").addEventListener("submit", (event) =>
     const rejestracja = document.getElementById("praktyczne-rejestracja").value;
     const kategoria = document.getElementById("praktyczne-kategoria").value;
 
+
+    const zajeciaData = {
+        data,
+        godzina_rozpoczęcia: godzinaRozpoczęcia,
+        godzina_zakończenia: godzinaZakończenia,
+        numer_rejestracyjny: rejestracja,
+        kategoria: kategoria
+    };
+
+    // Wysyłanie danych do serwera
+    sendZajęciaData(zajeciaData, "praktyczne-tabela");
+
+    // Dodawanie wiersza do tabeli (lokalne przechowywanie)
     addRow("praktyczne-tabela", [data, godzinaRozpoczęcia, godzinaZakończenia, rejestracja, kategoria]);
+
+    // Ukrywanie formularza
     toggleForm("praktyczne-form");
 });
+
+// Funkcja do wysyłania danych do widoku Django
+function sendZajęciaData(data, tableId) {
+    fetch("/add_zajęcia/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            // Wysyłanie ciasteczka z danymi
+            "X-CustomCookie": getCookie("myCustomCookie"),  // Tutaj zmieniłem na twoje ciasteczko
+        },
+        body: JSON.stringify(data),
+    })
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                return response.json().then((errorData) => {
+                    throw new Error(errorData.error || "Wystąpił problem podczas zapisywania zajęć.");
+                });
+            }
+        })
+        .then((responseData) => {
+            alert(responseData.message || "Zajęcia zostały dodane pomyślnie!");
+            addRow(tableId, Object.values(data));
+        })
+        .catch((error) => {
+            console.error(error);
+            alert(error.message);
+        });
+}
 
 // Funkcja do dodawania wierszy do tabeli
 function addRow(tableId, rowData) {
@@ -50,4 +107,20 @@ function addRow(tableId, rowData) {
         const cell = row.insertCell();
         cell.textContent = cellData;
     });
+}
+
+// Funkcja do pobierania ciasteczka (zwykłe ciastka, nie CSRF token)
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }

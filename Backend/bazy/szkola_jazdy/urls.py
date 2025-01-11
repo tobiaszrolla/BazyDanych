@@ -32,7 +32,6 @@ urlpatterns = [
     path('dostępne_zajęcia/', zajencia_view.dostępne_zajęcia, name='dostępne_zajęcia'),
     path('Hinstruktor/', other_view.Hinstruktor, name='Hintrukotor'),
     path('Hadmin/', other_view.Hadmin, name='Hadmin'),
-    path('Add_zajęcia/', zajencia_view.add_zajęcia, name='Add_zajęcia'),
     path('usun_zajecia/<int:zajęcia_id>/', zajencia_view.delete_zajęcia, name='usun_zajecia'),
     path('add_room', sala_views.add_room, name='add_room'),
     path('delete_room/<str:nazwa>/', sala_views.delete_room, name='delete_room'),

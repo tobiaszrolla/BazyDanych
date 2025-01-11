@@ -29,6 +29,7 @@
         <section>
             <h3>Zajęcia Teoretyczne</h3>
             <form id="teoretyczne-form">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 <label for="teoretyczne-data">Data:</label>
                 <input type="date" id="teoretyczne-data" required>
 
@@ -44,7 +45,7 @@
                 <label for="teoretyczne-kategoria">Kategoria:</label>
                 <input type="text" id="teoretyczne-kategoria" required>
 
-                <button type="submit">Dodaj Zajęcia Teoretyczne</button>
+                <button id="dodaj-teoretyczne" type="submit">Dodaj Zajęcia Teoretyczne</button>
             </form>
             <table>
                 <tbody id="teoretyczne-tabela">
@@ -57,6 +58,7 @@
         <section>
             <h3>Zajęcia Praktyczne</h3>
             <form id="praktyczne-form">
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                 <label for="praktyczne-data">Data:</label>
                 <input type="date" id="praktyczne-data" required>
 
@@ -72,7 +74,7 @@
                 <label for="praktyczne-kategoria">Kategoria:</label>
                 <input type="text" id="praktyczne-kategoria" required>
 
-                <button type="submit">Dodaj Zajęcia Praktyczne</button>
+                <button id="dodaj-praktyczne" type="submit">Dodaj Zajęcia Praktyczne</button>
             </form>
             <table>
 
@@ -87,6 +89,6 @@
         <p>&copy; 2024 Szkoła Jazdy</p>
     </footer>
 
-    <script src="add_zajęcia.js"></script>
+    <script src="{% static 'szkola_jazdy/js/add_zajęcia.js' %}" defer></script>
 </body>
 </html>

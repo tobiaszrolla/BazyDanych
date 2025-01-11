@@ -29,9 +29,12 @@ def is_admin(user):
     return user.is_superuser
 def str_to_time(time_str):
     return datetime.strptime(time_str, "%H:%M:%S").time()
+
+@csrf_exempt
 @login_required
 def add_zajęcia(request):
     if request.method == "POST":
+        print("przeszło")
         # Sprawdzenie, czy użytkownik jest zalogowany
         if not request.user.is_authenticated:
             return JsonResponse({"error": "Musisz być zalogowany, aby stworzyć zajęcia."}, status=401)
